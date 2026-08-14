@@ -8,10 +8,10 @@ placeholder: false
 # Retreats stay inquiry-based, never instant checkout: the copy source gives an
 # email and a contact button rather than a price.
 #
-# The retreat address (k.fedorowicz@riftartech.com) lives in CONTACT_ROUTES in
-# config/site.ts so the footer and S18 read one source. The copy source flags
-# that it sits on the RIFT domain, a different company, and that a Surya
-# address would read better to a customer.
+# All five footer inquiry types, including Retreats, now route through the
+# unified /contact form to SITE.contactEmail (config/site.ts) — the copy
+# source's explicit spec, resolving the address-per-route question this note
+# used to flag.
 ---
 
 Set in the Samaná region, surrounded by turquoise sea and jungle, Surya Center

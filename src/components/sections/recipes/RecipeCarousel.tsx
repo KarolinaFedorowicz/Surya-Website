@@ -24,11 +24,14 @@ export function RecipeCarousel({
   eyebrow,
   headline,
   lead,
+  guideHref,
 }: {
   recipes: Recipe[];
   eyebrow: string;
   headline: string;
   lead?: string;
+  /** When set, every card links here instead of its own `/recipes/[slug]`. */
+  guideHref?: string;
 }) {
   const track = useRef<HTMLUListElement>(null);
   const drag = useRef({ active: false, startX: 0, startLeft: 0 });
@@ -102,7 +105,7 @@ export function RecipeCarousel({
             key={r.slug}
             className="w-[78vw] shrink-0 snap-start sm:w-[46vw] lg:w-[30vw] xl:w-[24rem]"
           >
-            <RecipeCard recipe={r} />
+            <RecipeCard recipe={r} href={guideHref} />
           </li>
         ))}
       </ul>

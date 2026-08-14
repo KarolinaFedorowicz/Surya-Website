@@ -30,6 +30,7 @@ export default function HomePage() {
         lead={inside.lead}
         paragraphs={inside.paragraphs}
         closing={inside.closing}
+        ctas={inside.ctas}
       />
       <FamiliesTeaser />
       <RecipesTeaser />

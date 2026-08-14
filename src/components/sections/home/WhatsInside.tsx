@@ -1,7 +1,7 @@
 // S4 — WhatsInside. SURYA_CACAO_BUILD_PLAN.md §3.5
 "use client";
 
-import { Display, Eyebrow, HairlineRule, Section } from "@/components/primitives";
+import { Button, Display, Eyebrow, HairlineRule, Section } from "@/components/primitives";
 import { Scrollytelling } from "@/components/motion";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
  * Framed as education, not a supplement label. No clinical claims.
  */
 type Compound = { name: string; note: string };
+type Cta = { label: string; href: string | null };
 
 export function WhatsInside({
   title,
@@ -26,6 +27,7 @@ export function WhatsInside({
   lead,
   paragraphs = [],
   closing,
+  ctas = [],
 }: {
   title: string;
   eyebrow: string;
@@ -33,6 +35,7 @@ export function WhatsInside({
   lead?: string;
   paragraphs?: string[];
   closing?: string;
+  ctas?: Cta[];
 }) {
   return (
     <Section tone="ivory" space="none" id="whats-inside" className="py-0">
@@ -104,6 +107,18 @@ export function WhatsInside({
               <p className="text-ink font-body text-body mt-14 max-w-[52ch]">
                 {closing}
               </p>
+            ) : null}
+
+            {ctas.filter((c) => c.href).length > 0 ? (
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                {ctas
+                  .filter((c) => c.href)
+                  .map((c) => (
+                    <Button key={c.label} href={c.href as string} size="lg">
+                      {c.label}
+                    </Button>
+                  ))}
+              </div>
             ) : null}
           </div>
         )}

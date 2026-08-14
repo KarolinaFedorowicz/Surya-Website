@@ -7,7 +7,7 @@ import { Newsletter } from "./Newsletter";
 import { SocialLinks } from "./SocialLinks";
 import {
   CLOSING_LINE,
-  CONTACT_ROUTES,
+  CONTACT_LINK,
   LEGAL_LINKS,
   NAV_LINKS,
   SITE,
@@ -48,28 +48,15 @@ export function Footer() {
 
       <HairlineRule className="mt-20" />
 
-      {/* Contact — the five inquiry routes named in the copy source. Rows with
-          a real address render as a mailto; the rest point at the page that
-          already runs that inquiry. No address is invented. */}
+      {/* Contact — one link to the unified form (/contact), whose inquiry-type
+          dropdown covers what five separate footer routes used to. */}
       <nav aria-label="Contact" className="mt-10">
-        <p className="text-muted font-body text-eyebrow uppercase tracking-[0.15em] [font-variant-caps:all-small-caps]">
-          Contact
-        </p>
-        <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {CONTACT_ROUTES.map((c) => (
-            <li key={c.label}>
-              <Link
-                href={c.email ? `mailto:${c.email}` : c.href}
-                className="text-ink hover:text-emphasis font-body text-caption transition-colors duration-[600ms] ease-surya"
-              >
-                {c.label}
-              </Link>
-              <p className="text-muted font-body text-caption mt-1 max-w-[34ch]">
-                {c.note}
-              </p>
-            </li>
-          ))}
-        </ul>
+        <Link
+          href={CONTACT_LINK.href}
+          className="text-ink hover:text-emphasis font-body text-eyebrow uppercase tracking-[0.15em] [font-variant-caps:all-small-caps]"
+        >
+          {CONTACT_LINK.label}
+        </Link>
       </nav>
 
       <HairlineRule className="mt-14" />
@@ -90,6 +77,16 @@ export function Footer() {
                 </Link>
               </li>
             ))}
+            <li>
+              <a
+                href={SITE.communityUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ink hover:text-emphasis font-body text-caption transition-colors duration-[600ms] ease-surya"
+              >
+                Join our community
+              </a>
+            </li>
           </ul>
         </nav>
 
