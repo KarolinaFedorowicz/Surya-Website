@@ -14,15 +14,12 @@ export type NavLink = {
 
 export const SITE = {
   name: "Surya Cacao",
-  url: "https://suryacenters.com",
+  /** Placeholder domain — confirmed with the client, swap on first deploy. */
+  url: "https://suryacacao.com",
   description:
     "Beyond cacao — a return to ritual, shared by three families across three continents.",
   /** brief §5.7 / plan L4 — restated in the footer and beside the size selector. */
   shippingRegions: ["North America", "European Union"],
-  /** WhatsApp community invite — Hero's "Join Our Tribe" and the footer's "Join our community". */
-  communityUrl: "https://chat.whatsapp.com/IjnBldAGXf44oLGeLW4DFQ",
-  /** Every /contact inquiry, regardless of type, delivers here. */
-  contactEmail: "karolina.f.cacao@gmail.com",
 } as const;
 
 /**
@@ -72,11 +69,51 @@ export const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 /**
- * L4 footer's Contact block — the copy source's spec is one link to one
- * unified form (/contact), whose inquiry-type dropdown replaces the five
- * separate routes this used to fan out to.
+ * L4 footer's Contact block — the five inquiry routes named in the copy source.
+ *
+ * ⚠ OPEN ITEM, flagged by the copy source itself: only Retreats has a real
+ * address, and it is on the RIFT domain, which is a different company. The
+ * other four are pointed at the pages that already run their inquiry — S18 on
+ * /partnerships handles studio, bulk and press; /faq covers order and shipping
+ * questions. No address is invented here. When dedicated Surya mailboxes exist,
+ * set `email` and the footer switches that row to a mailto without further
+ * changes.
  */
-export const CONTACT_LINK: NavLink = { href: "/contact", label: "Contact" };
+export type ContactRoute = {
+  label: string;
+  note: string;
+  href: string;
+  email?: string;
+};
+
+export const CONTACT_ROUTES: ContactRoute[] = [
+  {
+    label: "Bring Our Cacao to Your Studio",
+    note: "Wholesale and studio partnership inquiries",
+    href: "/partnerships",
+  },
+  {
+    label: "Customer Support",
+    note: "Order help, shipping questions",
+    href: "/faq",
+  },
+  {
+    label: "Mass Orders & Chocolate Supply",
+    note: "Bulk and B2B cacao supply",
+    href: "/partnerships",
+  },
+  {
+    label: "PR & Collab",
+    note: "Press and brand partnerships",
+    href: "/partnerships",
+  },
+  {
+    label: "Retreats",
+    note: "Retreat planning",
+    href: "/retreats",
+    email: "k.fedorowicz@riftartech.com",
+  },
+];
 
 /**
  * Routes whose hero is a dark, full-bleed surface, so the nav can sit

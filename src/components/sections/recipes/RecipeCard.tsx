@@ -16,30 +16,18 @@ import { cn } from "@/lib/utils";
  * The whole card is one link rather than a link on the title: a 300px image
  * that isn't clickable next to a 20px text target is a worse pointer and touch
  * experience, and it keeps the tab stop count down on a page of nine cards.
- *
- * `href` optionally overrides the default `/recipes/[slug]` destination — the
- * /recipes index points its cards at an external recipe guide instead of
- * internal detail pages, since only 6 of the 8 listed drinks have written
- * instructions. An external href gets `target="_blank"` and swaps the
- * "The method →" line for "The recipe ↗" so the destination isn't a surprise.
  */
 export function RecipeCard({
   recipe,
-  href,
   className,
 }: {
   recipe: Recipe;
-  href?: string;
   className?: string;
 }) {
-  const destination = href ?? `/recipes/${recipe.slug}`;
-  const external = destination.startsWith("http");
-
   return (
     <Link
-      href={destination}
+      href={`/recipes/${recipe.slug}`}
       className={cn("group block", className)}
-      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
     >
       <TiltCard>
         <Frame
@@ -60,7 +48,7 @@ export function RecipeCard({
       </p>
 
       <p className="text-emphasis font-body text-caption mt-5 uppercase tracking-[0.12em] [font-variant-caps:all-small-caps]">
-        {external ? "The recipe ↗" : "The method →"}
+        The method →
       </p>
     </Link>
   );

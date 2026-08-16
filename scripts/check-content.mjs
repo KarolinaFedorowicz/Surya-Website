@@ -9,8 +9,9 @@
 import { execFileSync } from "node:child_process";
 import { writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const ROOT = new URL("..", import.meta.url).pathname;
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const shim = join(ROOT, ".content-audit.mjs");
 
 // next/font and "server-only" don't resolve outside Next, so read the content

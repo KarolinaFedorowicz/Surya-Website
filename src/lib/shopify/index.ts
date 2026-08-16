@@ -126,13 +126,7 @@ export async function createCart(): Promise<Cart> {
 export async function addToCart(
   lines: { merchandiseId: string; quantity: number }[],
 ): Promise<Cart> {
-  let cartId = await getCartId();
-  if (!cartId) {
-    const newCart = await createCart();
-    if (!newCart.id) throw new Error("Failed to create cart");
-    cartId = newCart.id;
-    await setCartId(cartId);
-  }
+  const cartId = await getCartId();
   const res = await shopifyFetch<ShopifyAddToCartOperation>({
     query: addToCartMutation,
     variables: { cartId, lines },
@@ -180,11 +174,6 @@ export async function getCart(): Promise<Cart | undefined> {
 async function getCartId(): Promise<string> {
   const { cookies } = await import("next/headers");
   return (await cookies()).get("cartId")?.value ?? "";
-}
-
-async function setCartId(cartId: string): Promise<void> {
-  const { cookies } = await import("next/headers");
-  (await cookies()).set("cartId", cartId);
 }
 
 /* ---- Product queries --------------------------------------------------- */

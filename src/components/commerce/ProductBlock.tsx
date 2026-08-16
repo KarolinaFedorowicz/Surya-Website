@@ -55,7 +55,7 @@ export function ProductBlock({
           <Image
             key={img.url}
             src={img.url}
-            alt={(i === 0 ? img.altText : "") ?? ""}
+            alt={i === 0 ? (img.altText ?? product.title) : ""}
             fill
             priority={i === 0}
             sizes="(min-width: 1024px) 45vw, 100vw"

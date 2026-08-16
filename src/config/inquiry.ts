@@ -1,8 +1,8 @@
 import type { InquiryConfig } from "@/components/sections/InquiryForm";
 
 /**
- * The three configurations S18 serves. Kept as data beside site.ts for the
- * same reason nav is: adding a field should never mean opening JSX.
+ * The two configurations S18 serves. Kept as data beside site.ts for the same
+ * reason nav is: adding a field should never mean opening JSX.
  */
 
 export const RETREAT_INQUIRY: InquiryConfig = {
@@ -11,7 +11,6 @@ export const RETREAT_INQUIRY: InquiryConfig = {
   intro:
     "We'll help you build the retreat around it. Nothing longer than this — a real conversation follows.",
   submitLabel: "Send inquiry",
-  formName: "Retreat inquiry",
   fields: [
     { kind: "text", name: "name", label: "Name", required: true },
     { kind: "email", name: "email", label: "Email", required: true },
@@ -47,7 +46,6 @@ export const PARTNERSHIP_INQUIRY: InquiryConfig = {
   intro:
     "Brands, wellness spaces, studios and practitioners. Tell us what you have in mind and who it's for.",
   submitLabel: "Send inquiry",
-  formName: "Partnership inquiry",
   fields: [
     { kind: "text", name: "name", label: "Name", required: true },
     { kind: "email", name: "email", label: "Email", required: true },
@@ -67,37 +65,5 @@ export const PARTNERSHIP_INQUIRY: InquiryConfig = {
       ],
     },
     { kind: "textarea", name: "message", label: "Message" },
-  ],
-};
-
-/**
- * The unified /contact form — copy source's footer spec: one form, one
- * inquiry-type selector, every submission to SITE.contactEmail regardless of
- * type. `inquiryType`'s value IS the email subject label (see
- * api/inquiry/route.ts), so no separate `formName` is set here.
- */
-export const CONTACT_INQUIRY: InquiryConfig = {
-  eyebrow: "Contact",
-  heading: "Get in touch.",
-  intro: "Tell us what this is about, and we'll route it to the right person.",
-  submitLabel: "Send message",
-  fields: [
-    { kind: "text", name: "name", label: "Name", required: true },
-    { kind: "email", name: "email", label: "Email", required: true },
-    {
-      kind: "select",
-      name: "inquiryType",
-      label: "What's this about",
-      placeholder: "Choose one",
-      required: true,
-      options: [
-        { value: "Customer Service", label: "Customer Service" },
-        { value: "Partnerships", label: "Partnerships" },
-        { value: "PR", label: "PR" },
-        { value: "Retreats", label: "Retreats" },
-        { value: "Wholesale", label: "Wholesale" },
-      ],
-    },
-    { kind: "textarea", name: "message", label: "Message", required: true },
   ],
 };

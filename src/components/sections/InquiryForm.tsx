@@ -14,13 +14,14 @@ import {
 } from "@/components/primitives";
 
 /**
- * ONE component, config-driven. Retreats, Partnerships and Contact pass
- * different field sets and copy — plan §4: "saves 2 near-identical components
- * and 2 API routes." The studio-stocking audience from the dropped /studio
- * page is a collaboration-type option here rather than a third form.
+ * ONE component, config-driven. Retreats and Partnerships pass different field
+ * sets and copy — plan §4: "saves 2 near-identical components and 2 API
+ * routes." The studio-stocking audience from the dropped /studio page is a
+ * collaboration-type option here rather than a third form.
  *
- * Posts to /api/inquiry and reflects its real `delivered` flag in the success
- * state, rather than claiming delivery unconditionally.
+ * Phase 4 is presentation: it validates and shows a success state but does not
+ * claim to have sent anything. /api/inquiry is Phase 5, and the confirmation
+ * says so rather than lying about delivery.
  */
 export type InquiryField =
   | { kind: "text"; name: string; label: string; required?: boolean; hint?: string }
@@ -42,8 +43,6 @@ export type InquiryConfig = {
   intro: string;
   submitLabel: string;
   fields: InquiryField[];
-  /** Names the form in the email subject when no `inquiryType` field is present. */
-  formName?: string;
 };
 
 export function InquiryForm({
@@ -55,10 +54,7 @@ export function InquiryForm({
   tone?: "dark" | "sand" | "ivory";
   id?: string;
 }) {
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
-    "idle",
-  );
-  const sent = status === "sent";
+  const [sent, setSent] = useState(false);
 
   return (
     <Section tone={tone} space="normal" id={id}>
@@ -78,29 +74,17 @@ export function InquiryForm({
             <Display as="p" size="section" color="emphasis" className="text-h3">
               Thank you — we&rsquo;ll be in touch.
             </Display>
+            <p className="text-muted font-body text-caption mt-4 max-w-[40ch]">
+              Not yet delivered anywhere: the inquiry endpoint is wired in
+              Phase 5. Nothing has been stored.
+            </p>
           </div>
         ) : (
           <form
             className="grid gap-8"
-            onSubmit={async (e) => {
+            onSubmit={(e) => {
               e.preventDefault();
-              setStatus("sending");
-
-              const data = Object.fromEntries(
-                new FormData(e.currentTarget).entries(),
-              );
-              if (config.formName) data.formName = config.formName;
-
-              try {
-                const res = await fetch("/api/inquiry", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(data),
-                });
-                setStatus(res.ok ? "sent" : "error");
-              } catch {
-                setStatus("error");
-              }
+              setSent(true);
             }}
           >
             {config.fields.map((f) => {
@@ -142,14 +126,9 @@ export function InquiryForm({
             })}
 
             <div>
-              <Button type="submit" size="lg" disabled={status === "sending"}>
-                {status === "sending" ? "Sending…" : config.submitLabel}
+              <Button type="submit" size="lg">
+                {config.submitLabel}
               </Button>
-              {status === "error" ? (
-                <p role="alert" className="text-ink font-body text-caption mt-4 max-w-[34ch]">
-                  Something went wrong sending that — please try again.
-                </p>
-              ) : null}
             </div>
           </form>
         )}

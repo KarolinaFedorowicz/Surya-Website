@@ -15,10 +15,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid submission." }, { status: 400 });
   }
 
-  const { delivered } = await deliver({
-    kind: "notify",
-    subject: `Newsletter signup: ${parsed.data.email}`,
-    payload: parsed.data,
-  });
-  return NextResponse.json({ accepted: true, delivered }, { status: 202 });
+  await deliver({ kind: "notify", payload: parsed.data });
+  return NextResponse.json({ accepted: true, delivered: false }, { status: 202 });
 }

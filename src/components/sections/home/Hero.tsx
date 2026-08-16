@@ -65,26 +65,17 @@ export function Hero() {
 
           {/* A CTA without an href is a copy line whose destination is still an
               open item — recorded in the content file, not rendered as a dead
-              button. */}
+              button. Today that skips "Join Our Tribe". */}
           <div className="mt-12 flex flex-wrap items-center gap-4">
             {(copy.ctas ?? [])
               .filter((c) => c.href)
-              .map((c) => {
-                const external = (c.href as string).startsWith("http");
-                return (
-                  <MagneticButton key={c.label}>
-                    <Button
-                      href={c.href as string}
-                      size="lg"
-                      {...(external
-                        ? { target: "_blank", rel: "noopener noreferrer" }
-                        : {})}
-                    >
-                      {c.label}
-                    </Button>
-                  </MagneticButton>
-                );
-              })}
+              .map((c) => (
+                <MagneticButton key={c.label}>
+                  <Button href={c.href as string} size="lg">
+                    {c.label}
+                  </Button>
+                </MagneticButton>
+              ))}
           </div>
         </div>
       </div>
