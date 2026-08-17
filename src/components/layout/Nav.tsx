@@ -1,185 +1,134 @@
-// L1 — Nav. SURYA_CACAO_BUILD_PLAN.md §3.3
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
-
-import { Container } from "./Container";
-import { Mark } from "./Mark";
-import { MobileMenu } from "./MobileMenu";
-import { ShopDropdown } from "./ShopDropdown";
-import { CartButton } from "@/components/commerce/CartButton";
-import { SunriseProgress } from "@/components/motion";
-import { NAV_LINKS, isOverlayRoute } from "@/config/site";
-import type { Product } from "@/lib/shopify/types";
-import { cn } from "@/lib/utils";
-
-/** Distance scrolled before the nav commits to its solid state. */
-const SOLID_AT = 64;
+import { useEffect, useState } from "react";
+import { navigation } from "@content/navigation";
+import Button from "@/components/ui/Button";
 
 /**
- * The bar's height, fixed rather than derived from its contents. The tallest
- * child (the Shop pill) would otherwise set it, so the spacer below could not
- * be written down correctly — it was 7px short. One constant, used by both.
+ * The link list, plus the mobile drawer.
+ *
+ * Split from Header because this is the part that needs client state — the
+ * drawer, the escape key, the scroll lock — while the bar itself is chrome.
+ *
+ * Every href here is verified against a section that actually exists: the
+ * anchors #our-ritual, #about-us and #join-our-tribe are rendered by
+ * RitualMeaning, About and JoinTheTribe respectively, and /shop and /retreats
+ * are real routes. Nothing links to a planned-but-unbuilt section.
  */
-const NAV_H = "h-20";
 
-/**
- * Sticky, transparent over the hero → solid on scroll.
- *
- * Two details worth knowing:
- *
- * 1. Transparency is route-driven, not assumed. Only routes listed in
- *    `OVERLAY_ROUTES` have a dark full-bleed hero for the nav to sit on;
- *    everywhere else it is solid from first paint, because a transparent nav
- *    over Sand Paper is unreadable. Phase 4 adds routes as heroes are built.
- *
- * 2. The scroll listener is passive and coalesced into a single
- *    requestAnimationFrame — constraint §6.6, "no animation logic outside
- *    requestAnimationFrame". It sets one boolean; it does not animate
- *    per-frame. The visual change is a CSS transition.
- *
- * The nav progress ring (M8) lands here in Phase 8.
- */
-export function Nav({ product }: { product: Product }) {
+const linkClass =
+  "link-draw text-caption uppercase tracking-caption whitespace-nowrap";
+
+export default function Nav() {
+  const [open, setOpen] = useState(false);
   const pathname = usePathname();
-  const canOverlay = isOverlayRoute(pathname);
 
-  const [solid, setSolid] = useState(!canOverlay);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const burgerRef = useRef<HTMLButtonElement>(null);
-  const ticking = useRef(false);
+  // Close on route change, so tapping a drawer link doesn't leave it hanging.
+  // Adjusted during render (React's documented pattern for resetting state
+  // off a changed prop) rather than in an effect, which would cost an extra
+  // render pass for the same result.
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
+    setOpen(false);
+  }
 
   useEffect(() => {
-    if (!canOverlay) {
-      setSolid(true);
-      return;
-    }
+    if (!open) return;
 
-    const read = () => {
-      setSolid(window.scrollY > SOLID_AT);
-      ticking.current = false;
-    };
-    const onScroll = () => {
-      if (ticking.current) return;
-      ticking.current = true;
-      requestAnimationFrame(read);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
     };
 
-    read();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [canOverlay]);
+    document.addEventListener("keydown", onKey);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
-  const closeMenu = useCallback(() => setMenuOpen(false), []);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
+  function isActive(href: string) {
+    if (href === "/") return pathname === "/";
+    if (href.startsWith("/#")) return false; // anchors aren't a route state
+    return pathname.startsWith(href);
+  }
 
   return (
     <>
-      <header
-        // Overlaid on a dark hero the nav borrows the dark tone; once solid it
-        // becomes a Sand Paper surface. Either way it only names tone roles.
-        data-tone={solid ? "sand" : "dark"}
-        className={cn(
-          "fixed inset-x-0 top-0 z-50",
-          "transition-colors duration-[600ms] ease-surya",
-          solid
-            ? "bg-surface border-hairline border-b"
-            : "border-b border-transparent bg-transparent",
-        )}
+      {/* Desktop */}
+      <div className="hidden items-center gap-8 lg:flex">
+        <ul className="flex items-center gap-7">
+          {navigation.links.map((link) => (
+            <li key={link.label}>
+              <Link
+                href={link.href}
+                className={`${linkClass} ${
+                  isActive(link.href) ? "text-gilded-gold" : ""
+                }`}
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <Button href={navigation.cta.href} size="compact">
+          {navigation.cta.label}
+        </Button>
+      </div>
+
+      {/* Mobile trigger */}
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="mobile-nav"
+        aria-label={open ? "Close menu" : "Open menu"}
+        onClick={() => setOpen((v) => !v)}
+        className="text-caption tracking-caption uppercase lg:hidden"
       >
-        <Container className={cn("flex items-center justify-between gap-6", NAV_H)}>
-          {/* M8's progress ring sits around the mark — "the rays fill in as
-              you descend" (brief §4.4). */}
-          <span className="relative inline-flex items-center">
-            <Mark
-              href="/"
-              variant="emblem"
-              className={cn(
-                "w-auto transition-all duration-[600ms] ease-surya",
-                solid ? "h-9" : "h-11",
-              )}
-            />
-            <SunriseProgress className="pointer-events-none absolute -right-8 size-7" />
-          </span>
+        {open ? "Close" : "Menu"}
+      </button>
 
-          <nav aria-label="Main" className="hidden items-center gap-9 md:flex">
-            {NAV_LINKS.filter((l) => !l.emphasis).map((link) => {
-              // "/" has to match exactly. startsWith would mark Home active on
-              // every route in the site, which is how the nav ends up with two
-              // current pages at once.
-              const active =
-                link.href === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  aria-current={active ? "page" : undefined}
-                  className={cn(
-                    "relative font-body text-caption uppercase tracking-[0.12em]",
-                    "[font-variant-caps:all-small-caps] transition-colors duration-[600ms] ease-surya",
-                    // The underline is a scaleX'd rule, matching P6 TextLink.
-                    "after:bg-emphasis after:absolute after:inset-x-0 after:-bottom-1.5 after:h-px",
-                    "after:origin-left after:transition-transform after:duration-[600ms] after:ease-surya",
-                    active
-                      ? "text-emphasis after:scale-x-100"
-                      : "text-ink after:scale-x-0 hover:after:scale-x-100",
-                  )}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-            <ShopDropdown product={product} />
-            <CartButton />
-          </nav>
+      {/* Mobile drawer */}
+      <div
+        id="mobile-nav"
+        hidden={!open}
+        className="bg-deep-cacao-night text-sand-paper fixed inset-0 z-50 flex flex-col justify-center px-[var(--gutter)] lg:hidden"
+      >
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          aria-label="Close menu"
+          className="text-caption tracking-caption absolute top-[1.9rem] right-[var(--gutter)] uppercase"
+        >
+          Close
+        </button>
 
-          <div className="flex items-center gap-1 md:hidden">
-            <CartButton />
-            <button
-            ref={burgerRef}
-            type="button"
-            aria-expanded={menuOpen}
-            aria-controls="mobile-menu"
-            onClick={() => setMenuOpen((v) => !v)}
-            className="text-ink -mr-2 p-2"
-          >
-            <span className="sr-only">
-              {menuOpen ? "Close menu" : "Open menu"}
-            </span>
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              className="size-6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.25"
-              strokeLinecap="round"
-            >
-              {menuOpen ? (
-                <path d="M6 6l12 12M18 6L6 18" />
-              ) : (
-                <path d="M3 7h18M3 12h18M3 17h18" />
-              )}
-            </svg>
-            </button>
-          </div>
-        </Container>
-      </header>
+        <ul className="flex flex-col gap-6">
+          {navigation.links.map((link) => (
+            <li key={link.label}>
+              <Link
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className="font-display text-h3"
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
 
-      {/* The header is fixed, so it reserves no layout space. On overlay
-          routes that's the point — the hero sits under it. Everywhere else
-          the page would slide beneath the bar, so reserve its height here
-          rather than making every Phase 4 section remember a top padding. */}
-      {!canOverlay ? <div aria-hidden="true" className={NAV_H} /> : null}
-
-      <MobileMenu
-        open={menuOpen}
-        onClose={closeMenu}
-        triggerRef={burgerRef}
-      />
+        <div className="mt-10">
+          <Button href={navigation.cta.href} onDark>
+            {navigation.cta.label}
+          </Button>
+        </div>
+      </div>
     </>
   );
 }

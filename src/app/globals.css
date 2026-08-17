@@ -1,274 +1,76 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
+@import "../styles/motion.css";
 
-/* ==========================================================================
-   SURYA CACAO — DESIGN TOKENS
-   This file is the ONLY place a hex value or a font family may appear.
-   Components reference roles (surface / ink / muted / accent), never colors.
-   Ref: BUILD_BRIEF.md §3.1 (color), §3.2 (type), §3.4 (texture), §4.1 (motion)
-   ========================================================================== */
-
-/* --------------------------------------------------------------------------
-   Typefaces — self-hosted, subset (latin + latin-ext), font-display: swap.
-   Only two faces exist. There is no third. — brief §3.2
-   -------------------------------------------------------------------------- */
-
-@font-face {
-  font-family: "Gilda Display";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/gilda-display-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
-    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
-    U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: "Gilda Display";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/gilda-display-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
-    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
-    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-
-@font-face {
-  font-family: "Marcellus";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/marcellus-latin.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
-    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
-    U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: "Marcellus";
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url("/fonts/marcellus-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
-    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF,
-    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-
-/* --------------------------------------------------------------------------
-   Static theme — the five brand colors, two faces, type scale, motion.
-   -------------------------------------------------------------------------- */
-
-@theme {
-  /* The five named values. Nothing else is a brand color. — brief §3.1 */
-  --color-aubergine: #6c4749; /* Aubergine Ink    — primary, ink on light  */
-  --color-sand: #e0bfa1; /* Sand Paper       — page/section surfaces  */
-  --color-night: #2a1719; /* Deep Cacao Night — hero, footer, retreats */
-  --color-ivory: #f6eee3; /* Warm Ivory       — cards layered on Sand  */
-  --color-gold: #b8935b; /* Gilded Gold      — accent only, NEVER fill */
-
-  /* Two faces. Hierarchy comes from size/tracking/case. — brief §3.2 */
-  --font-display: "Gilda Display", "Iowan Old Style", Georgia, serif;
-  --font-body: "Marcellus", "Iowan Old Style", Georgia, serif;
-
-  /* Type scale — brief §3.2, fluid between the stated mobile/desktop bounds. */
-  --text-eyebrow: 0.8125rem; /* 13px */
-  --text-eyebrow--line-height: 1.2;
-  --text-eyebrow--letter-spacing: 0.15em;
-
-  --text-caption: 0.875rem; /* 14px */
-  --text-caption--line-height: 1.45;
-  --text-caption--letter-spacing: 0.05em;
-
-  --text-body: clamp(1.0625rem, 0.98rem + 0.35vw, 1.1875rem); /* 17 → 19px */
-  --text-body--line-height: 1.6;
-
-  --text-h3: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem); /* 20 → 24px */
-  --text-h3--line-height: 1.35;
-  --text-h3--letter-spacing: 0.03em;
-
-  --text-h2: clamp(2.5rem, 1.6rem + 3.6vw, 3.5rem); /* 40 → 56px */
-  --text-h2--line-height: 1.1;
-  --text-h2--letter-spacing: -0.01em;
-
-  --text-h1: clamp(2.5rem, 0.9rem + 6.4vw, 6rem); /* 40 → 96px */
-  --text-h1--line-height: 1.03;
-  --text-h1--letter-spacing: -0.015em;
-
-  /* Motion — a slow exhale, never a bounce. Nothing under 500ms. brief §4.1 */
-  --ease-surya: cubic-bezier(0.22, 1, 0.36, 1);
-  --ease-surya-in: cubic-bezier(0.64, 0, 0.78, 0);
-}
-
-/* --------------------------------------------------------------------------
-   Role tokens — what components actually consume.
-   `@theme inline` maps a utility onto a live custom property, so `bg-surface`
-   resolves per-Section instead of being baked in at build time. This is the
-   mechanism that lets <Section tone> enforce the color rule. — brief §3.1
-   -------------------------------------------------------------------------- */
-
+/**
+ * Exposes the design tokens to Tailwind as utilities — bg-sand-paper,
+ * text-aubergine-ink, font-display, text-h1, and so on. Components use these
+ * utilities or the raw custom properties, never literal values.
+ */
 @theme inline {
-  --color-surface: var(--surface);
-  --color-ink: var(--ink);
-  --color-muted: var(--muted);
-  --color-hairline: var(--hairline);
-  --color-btn: var(--btn-bg);
-  --color-btn-ink: var(--btn-ink);
+  --color-aubergine-ink: var(--color-aubergine-ink);
+  --color-sand-paper: var(--color-sand-paper);
+  --color-deep-cacao-night: var(--color-deep-cacao-night);
+  --color-warm-ivory: var(--color-warm-ivory);
+  --color-gilded-gold: var(--color-gilded-gold);
 
-  /* Two accent roles, because gold cannot do both jobs accessibly.
-     `accent`   — literal Gilded Gold. Hairlines, borders, list markers,
-                  decorative strokes. Non-text, so WCAG minimums don't bite.
-     `emphasis` — the tone-safe accent for TEXT. Gold on Deep Cacao Night
-                  (5.96:1), Aubergine on the light surfaces. See the note in
-                  the tone blocks below. Always use text-emphasis, never
-                  text-accent, for anything a reader has to read. */
-  --color-accent: var(--accent);
-  --color-emphasis: var(--emphasis);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+
+  --text-eyebrow: var(--text-eyebrow);
+  --text-h1: var(--text-h1);
+  --text-h2: var(--text-h2);
+  --text-h3: var(--text-h3);
+  --text-body: var(--text-body);
+  --text-caption: var(--text-caption);
+
+  --tracking-eyebrow: var(--tracking-eyebrow);
+  --tracking-h1: var(--tracking-h1);
+  --tracking-h2: var(--tracking-h2);
+  --tracking-h3: var(--tracking-h3);
+  --tracking-caption: var(--tracking-caption);
+
+  --leading-h1: var(--leading-h1);
+  --leading-h2: var(--leading-h2);
+  --leading-h3: var(--leading-h3);
+  --leading-body: var(--leading-body);
+
+  --spacing-section: var(--space-section);
+  --spacing-block: var(--space-block);
+  --spacing-gutter: var(--gutter);
+
+  --container-measure: var(--measure);
+  --container-page: var(--container);
 }
 
-@layer base {
-  /* ------------------------------------------------------------------------
-     Tone definitions. Max three tokens per section. — brief §3.1
-       dark  = Deep Cacao Night  + Sand Paper text + Gold accent
-       sand  = Sand Paper        + Aubergine text  + Gold accent
-       ivory = Warm Ivory        + Aubergine text  + Gold accent
-     `--muted` and `--hairline` are derived from those same three via
-     color-mix; they introduce no new brand color.
+/**
+ * The product gallery on /shop hides its NATIVE scrollbar and draws its own.
+ *
+ * Styling ::-webkit-scrollbar was tried first and does not work here: on macOS
+ * the default is an overlay scrollbar that occupies zero layout height and is
+ * invisible until you are already scrolling — measured at 0px. That makes it
+ * useless as an affordance, because the whole job of this bar is to tell you a
+ * second photograph exists before you have thought to look for it. Meanwhile
+ * on Windows the same rules produce a permanent classic bar. Two platforms,
+ * two behaviours, neither reliable.
+ *
+ * So the native bar is hidden on every platform and ProductPurchase renders a
+ * track and thumb it controls itself. Native scrolling — swipe, trackpad,
+ * arrow keys — still works and drives that bar; only the painting is ours.
+ */
+.gallery-scroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge */
+}
 
-     Every `--muted` below is the most muted value that still clears WCAG AA
-     (4.5:1) against its own surface, solved in oklab. Do not soften them
-     further without re-running the contrast check.
+.gallery-scroll::-webkit-scrollbar {
+  display: none; /* WebKit / Blink */
+}
 
-     ⚠ Sand Paper has almost no headroom: Aubergine on Sand is 4.61:1, so any
-     tint toward the surface drops below AA. On Sand, `--muted` is therefore
-     identical to `--ink`, and secondary text earns its hierarchy from size,
-     tracking and case instead of color — which is what brief §3.2 asks for
-     anyway. Flagged for review; the alternative is lightening Sand Paper.
-     ---------------------------------------------------------------------- */
-
-  [data-tone="dark"] {
-    --surface: var(--color-night);
-    --ink: var(--color-sand);
-    --accent: var(--color-gold);
-    /* Gold clears AA on Night (5.96:1), so text may be genuinely gold here. */
-    --emphasis: var(--color-gold);
-    --muted: color-mix(in oklab, var(--color-sand) 68%, var(--color-night));
-    --hairline: color-mix(in oklab, var(--color-gold) 38%, transparent);
-    /* Aubergine on near-black fails contrast, so the filled button inverts to
-       Sand on Night. Still only brand tokens, still one filled style. */
-    --btn-bg: var(--color-sand);
-    --btn-ink: var(--color-night);
-  }
-
-  [data-tone="sand"] {
-    --surface: var(--color-sand);
-    --ink: var(--color-aubergine);
-    --accent: var(--color-gold);
-    /* Gold text on Sand is 1.65:1 — it fails AA and even the 3:1 large-text
-       floor. Emphasis falls back to ink. See the Phase 1 summary. */
-    --emphasis: var(--color-aubergine);
-    --muted: var(--color-aubergine); /* no headroom — see ⚠ above */
-    /* Gold, per brief §3.1's "hairline rules" role. Deliberately low-contrast:
-       a hairline is decorative, so WCAG minimums don't apply to it. Anything
-       load-bearing (a control boundary) must use --muted instead. */
-    --hairline: color-mix(in oklab, var(--color-gold) 60%, transparent);
-    --btn-bg: var(--color-aubergine);
-    --btn-ink: var(--color-ivory);
-  }
-
-  [data-tone="ivory"] {
-    --surface: var(--color-ivory);
-    --ink: var(--color-aubergine);
-    --accent: var(--color-gold);
-    /* Gold text on Ivory is 2.48:1 — also below the 3:1 large-text floor. */
-    --emphasis: var(--color-aubergine);
-    /* 81% is the AA floor here; 85% keeps a margin. */
-    --muted: color-mix(
-      in oklab,
-      var(--color-aubergine) 85%,
-      var(--color-ivory)
-    );
-    --hairline: color-mix(in oklab, var(--color-gold) 60%, transparent);
-    --btn-bg: var(--color-aubergine);
-    --btn-ink: var(--color-ivory);
-  }
-
-  /* Paper grain — faint, warm, light surfaces only. brief §3.4
-     Generated, not an asset: fractal noise desaturated to neutral. */
-  :root {
-    --grain-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23g)'/%3E%3C/svg%3E");
-  }
-
-  /* Layout measurements L8 Container owns. Exposed as custom properties so a
-     full-bleed scroller (S12 RecipeCarousel) can align its first item to the
-     content column without restating the numbers and drifting from it. */
-  :root {
-    --container-max: 76rem;
-    --gutter: 1.5rem;
-  }
-
-  @media (min-width: 768px) {
-    :root {
-      --gutter: 2.5rem;
-    }
-  }
-
-  /* M3 KenBurns. Declared here because keyframes cannot live in a component
-     style attribute. Transform only — nothing layout-triggering (§6.6). */
-  @keyframes surya-ken-burns {
-    from {
-      transform: scale(1);
-    }
-    to {
-      transform: scale(var(--ken-burns-scale, 1.03));
-    }
-  }
-
-  html {
-    /* M1 SmoothScroll (Lenis) drives this when motion is allowed; native
-       smooth is the resting state and the reduced-motion fallback. */
-    scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
-  }
-
-  body {
-    background-color: var(--color-sand);
-    color: var(--color-aubergine);
-    font-family: var(--font-body);
-    font-size: var(--text-body);
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* Focus uses --ink, not --accent: gold on sand is ~1.6:1 and would fail.
-     Ink is the highest-contrast token available on every tone. */
-  :focus-visible {
-    outline: 2px solid var(--ink, var(--color-aubergine));
-    outline-offset: 3px;
-    border-radius: 1px;
-  }
-
-  ::selection {
-    background-color: var(--color-gold);
-    color: var(--color-night);
-  }
-
-  /* Reduced motion is handled per-component in components/motion/; these
-     global brakes are the floor. Never trap scroll. — brief §4.1 */
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
+body {
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
 }

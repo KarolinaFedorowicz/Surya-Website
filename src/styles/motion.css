@@ -1,0 +1,159 @@
+/**
+ * Surya Cacao — motion and interaction conventions.
+ *
+ * Decided once here, applied everywhere. Rationale in COMPONENTS.md.
+ * Motion should read as a slow exhale: long easing, nothing springy,
+ * nothing under 500ms — with one stated exception, focus rings, which are
+ * immediate because a focus indicator that fades in is an accessibility bug.
+ */
+
+:root {
+  --ease-exhale: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-hover: 520ms;
+  --dur-reveal: 720ms;
+  --dur-drift: 9s;
+  --stagger: 80ms;
+
+  /* Shape. One radius for the whole site: none. */
+  --radius: 0px;
+  --border-hairline: 1px solid var(--color-gilded-gold);
+}
+
+/* Site-wide smooth scroll, weighted rather than native-abrupt. */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Anchored sections clear the fixed header when jumped to. */
+section[id] {
+  scroll-margin-top: calc(var(--header-h) + 1rem);
+}
+
+/* ---------------------------------------------------------------------
+ * Scroll-triggered reveal — text fades up 10px, staggered per line.
+ * The resting state is the visible one: if JS never runs, content shows.
+ * ------------------------------------------------------------------- */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity var(--dur-reveal) var(--ease-exhale),
+    transform var(--dur-reveal) var(--ease-exhale);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal="shown"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------------------------------------------------------------------
+ * Text links — underline draws left to right on hover.
+ * ------------------------------------------------------------------- */
+.link-draw {
+  position: relative;
+  display: inline-block;
+}
+
+.link-draw::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.15em;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-hover) var(--ease-exhale);
+}
+
+.link-draw:hover::after,
+.link-draw:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ---------------------------------------------------------------------
+ * Buttons — magnetic pull toward the cursor, capped at 6px.
+ * The transform is set inline by the component; the easing lives here.
+ * ------------------------------------------------------------------- */
+.btn-magnetic {
+  border-radius: var(--radius);
+  transition:
+    transform var(--dur-hover) var(--ease-exhale),
+    background-color var(--dur-hover) var(--ease-exhale),
+    color var(--dur-hover) var(--ease-exhale),
+    border-color var(--dur-hover) var(--ease-exhale);
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------------
+ * Cards — subtle 3D tilt. Capped at 4deg so it reads as weight, not gimmick.
+ * ------------------------------------------------------------------- */
+.tilt {
+  border-radius: var(--radius);
+  transform-style: preserve-3d;
+  transition: transform var(--dur-hover) var(--ease-exhale);
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------------
+ * Imagery — slow Ken Burns drift, 3% over 9s, never a hard-static photo.
+ * ------------------------------------------------------------------- */
+.ken-burns {
+  overflow: hidden;
+}
+
+.ken-burns > img {
+  animation: drift var(--dur-drift) var(--ease-exhale) infinite alternate;
+  transform-origin: center;
+}
+
+@keyframes drift {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.03);
+  }
+}
+
+/* ---------------------------------------------------------------------
+ * Focus — always visible, never animated in. Gold, offset so it reads
+ * against both the Sand Paper ground and Deep Cacao Night.
+ * ------------------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--color-gilded-gold);
+  outline-offset: 3px;
+  transition: none;
+}
+
+/* ---------------------------------------------------------------------
+ * Reduced motion — non-negotiable. Every animated element keeps a fully
+ * readable, non-animated resting state. Transforms off, cross-fade only.
+ * ------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: opacity 200ms linear;
+  }
+
+  .link-draw::after {
+    transition: none;
+  }
+
+  .btn-magnetic,
+  .tilt {
+    transform: none !important;
+    transition: background-color 200ms linear, color 200ms linear;
+  }
+
+  .ken-burns > img {
+    animation: none;
+  }
+}

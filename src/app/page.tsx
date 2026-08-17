@@ -1,38 +1,29 @@
-import type { Metadata } from "next";
+// ROUTE STUB — home page ("/").
+// Section order comes straight from the site content draft. Every child is an
+// empty shell at this stage, so this route renders nothing on purpose.
 
-import { Hero } from "@/components/sections/home/Hero";
-import { RitualReimagined } from "@/components/sections/home/RitualReimagined";
-import { OnGatekeeping } from "@/components/sections/home/OnGatekeeping";
-import { WhatsInside } from "@/components/sections/home/WhatsInside";
-import { FamiliesTeaser } from "@/components/sections/home/FamiliesTeaser";
-import { RecipesTeaser } from "@/components/sections/home/RecipesTeaser";
-import { PourWipe } from "@/components/motion";
-import { getCopy } from "@/lib/mdx";
-import { buildMetadata } from "@/lib/seo";
+import Hero from "@/components/sections/Hero";
+import RitualMeaning from "@/components/sections/RitualMeaning";
+import TreeToCup from "@/components/sections/TreeToCup";
+import RitualSteps from "@/components/sections/RitualSteps";
+import About from "@/components/sections/About";
+import Product from "@/components/sections/Product";
+import JoinTheTribe from "@/components/sections/JoinTheTribe";
 
-export const metadata: Metadata = buildMetadata({ path: "/" });
+// Community Proof (section 7) is intentionally not on the page yet — there are
+// no real testimonials. The component and its content file stay in place for
+// when there are. See CONTENT_QUESTIONS.md #8.
 
-/** Long-scroll brand narrative — S1 · S2 · S3 · S4 · S5 · S6. */
 export default function HomePage() {
-  const inside = getCopy("whats-inside");
-
   return (
     <>
       <Hero />
-      <RitualReimagined />
-      <OnGatekeeping />
-      {/* M10 at a real section boundary: Deep Cacao Night → Warm Ivory. */}
-      <PourWipe />
-      <WhatsInside
-        title={inside.headline ?? inside.title}
-        eyebrow={inside.eyebrow ?? "What's inside"}
-        compounds={inside.compounds ?? []}
-        lead={inside.lead}
-        paragraphs={inside.paragraphs}
-        closing={inside.closing}
-      />
-      <FamiliesTeaser />
-      <RecipesTeaser />
+      <RitualMeaning />
+      <TreeToCup />
+      <RitualSteps />
+      <About />
+      <Product />
+      <JoinTheTribe />
     </>
   );
 }

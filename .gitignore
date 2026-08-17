@@ -39,7 +39,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# Derived from root assets/ by the build — see Phase 2 notes
-public/assets/
-.DS_Store

@@ -1,0 +1,159 @@
+/**
+ * Surya Cacao — design tokens.
+ * Direction B, "Sand Ground". Approved at Design System Gate 1.
+ *
+ * The single source of truth for locked design values. Nothing here is a
+ * placeholder. Components read these tokens (or the Tailwind utilities mapped
+ * from them in src/app/globals.css) and never hardcode a hex value or a font.
+ *
+ * Rationale, including every point where this stage changed the original
+ * locked decisions: DESIGN_SYSTEM.md
+ */
+
+:root {
+  /* ======================================================================
+   * 1. PALETTE — five named values, no more
+   * ==================================================================== */
+
+  /* Primary — logo, headlines on light surfaces, primary buttons. */
+  --color-aubergine-ink: #6c4749;
+
+  /* Secondary — the page ground. This is the packaging color, and in
+   * Direction B it carries the whole site rather than punctuating it. */
+  --color-sand-paper: #e0bfa1;
+
+  /* Dark surface — the punctuating sections: ritual, community, footer. */
+  --color-deep-cacao-night: #2a1719;
+
+  /* Light surface — panels layered on Sand Paper. Only 1.50:1 against the
+   * ground, so a panel is never defined by its fill alone — see --rule. */
+  --color-warm-ivory: #f6eee3;
+
+  /* Accent — hairline rules, linework, active states, borders.
+   * NEVER a fill. NEVER lettering on a light surface: gold on Sand Paper is
+   * 1.65:1 and on Warm Ivory 2.48:1, both far below the 4.5:1 floor.
+   * Gold as text is permitted on Deep Cacao Night only (5.96:1). */
+  --color-gilded-gold: #b8935b;
+
+  /* ======================================================================
+   * 2. SURFACE RECIPES — max 3 palette tokens per section
+   *
+   * Light section: Sand Paper ground + Aubergine text + Gold rule.
+   * Dark section:  Deep Cacao Night ground + Sand Paper text + Gold accent.
+   *
+   * A section picks one recipe and stays inside it. Warm Ivory panels are the
+   * one sanctioned fourth token, and only inside a light section.
+   * ==================================================================== */
+
+  /* --- Light section (the default) --- */
+  --surface-page: var(--color-sand-paper);
+  --text-primary: var(--color-aubergine-ink); /* 4.61:1 — passes AA */
+  --text-heading: var(--color-aubergine-ink);
+  --text-eyebrow-color: var(--color-aubergine-ink); /* NOT gold — see rationale */
+  --rule: var(--color-gilded-gold);
+
+  /* --- Panel, layered on the light ground --- */
+  --surface-panel: var(--color-warm-ivory);
+  --panel-border: var(--color-gilded-gold); /* structural, not decorative */
+
+  /* --- Dark section --- */
+  --surface-dark: var(--color-deep-cacao-night);
+  --text-on-dark: var(--color-sand-paper); /* 9.83:1 */
+  --text-heading-on-dark: var(--color-warm-ivory); /* 14.78:1 */
+  --text-eyebrow-on-dark: var(--color-gilded-gold); /* 5.96:1 — gold works here */
+
+  /* --- Buttons --- */
+  --button-primary-bg: var(--color-aubergine-ink);
+  --button-primary-text: var(--color-sand-paper);
+  --button-ghost-border: var(--color-gilded-gold);
+  --button-ghost-text: var(--color-aubergine-ink);
+
+  /* ======================================================================
+   * 3. TYPEFACE — two faces only
+   *
+   * Hierarchy is built from size, tracking and case. Never from a third face,
+   * and never from weight: both faces ship a single 400 weight, so there is no
+   * bold to reach for. Loaded in src/app/layout.tsx via next/font — self-
+   * hosted, Latin-subset, font-display: swap.
+   * ==================================================================== */
+
+  /* Gilda Display — headlines and pull quotes. Large and rare only: never at
+   * body size, never more than 2–3 instances visible at once. */
+  --font-display: var(--font-gilda-display), Georgia, "Times New Roman", serif;
+
+  /* Marcellus — everything else: body, nav, buttons, eyebrows, captions,
+   * form labels. */
+  --font-body: var(--font-marcellus), Georgia, "Times New Roman", serif;
+
+  /* ======================================================================
+   * 4. TYPE SCALE — role-named, so a component asks for intent not pixels
+   * ==================================================================== */
+
+  /* Eyebrow / label — Marcellus, uppercase, wide tracking. */
+  --text-eyebrow: 0.8125rem; /* 13px */
+  --tracking-eyebrow: 0.15em;
+
+  /* H1 (hero) — Gilda Display, 40–48px mobile → 64–96px desktop. */
+  --text-h1: clamp(2.5rem, 6vw + 1rem, 6rem);
+  --tracking-h1: -0.01em; /* display serifs set tighter at scale */
+  --leading-h1: 1.06;
+
+  /* H2 (section) — Gilda Display, 40–56px. */
+  --text-h2: clamp(2.5rem, 3.5vw + 1rem, 3.5rem);
+  --tracking-h2: -0.005em;
+  --leading-h2: 1.1;
+
+  /* H3 (subsection) — Marcellus, 20–24px, medium tracking. */
+  --text-h3: clamp(1.25rem, 1vw + 1rem, 1.5rem);
+  --tracking-h3: 0.02em;
+  --leading-h3: 1.3;
+
+  /* Body — Marcellus, 17–19px. The floor is 17px: at 4.61:1 contrast the
+   * type must not get smaller than this. */
+  --text-body: clamp(1.0625rem, 0.4vw + 1rem, 1.1875rem);
+  --leading-body: 1.6;
+
+  /* Caption / UI — Marcellus, 13–14px. */
+  --text-caption: 0.875rem;
+  --tracking-caption: 0.05em;
+
+  /* ======================================================================
+   * 5. RHYTHM — the whitespace that makes an editorial page read as one
+   *
+   * Added at this stage, not present in the original locked decisions.
+   * Comes from the Vero reference: narrow measure, generous vertical air.
+   * ==================================================================== */
+
+  /* Vertical space between sections. Editorial pages breathe or they read
+   * like a brochure — but this is padding on BOTH sides of every section, so
+   * whatever is set here lands doubled between any two of them. At the old
+   * clamp(5rem, 10vw, 9.5rem) that was 304px of dead ground at 1440px wide,
+   * and the page read as a stack of unrelated slides rather than one document.
+   * Halved: 144px between sections at 1440, still generous next to the 24px
+   * or so that --space-block puts between elements inside a section, so the
+   * hierarchy of "new section" vs "next block" survives the tightening. */
+  --space-section: clamp(3rem, 5vw, 5.5rem);
+  --space-block: clamp(1.5rem, 3vw, 2.5rem);
+
+  /* Horizontal. --measure keeps body copy readable; --container is the outer
+   * bound for everything except full-bleed imagery. */
+  --measure: 46ch;
+
+  /* Widened from 72rem. At 72rem a 1440px screen spent 208px on the left
+   * margin before the first character — the centring offset (144px) stacked on
+   * top of the gutter (64px) — which read as the page having drifted right
+   * rather than as deliberate air. 84rem cuts that to 112px and holds the
+   * gutter at 4rem, so the type still clears the viewport edge on every size.
+   * --measure is unchanged: line length is a reading decision, not a layout
+   * one, so body copy keeps its 46ch regardless of how wide the frame gets. */
+  --container: 84rem;
+  --gutter: clamp(1.25rem, 5vw, 4rem);
+
+  /* Persistent chrome. Added at the nav/footer stage: the header is fixed, so
+   * anchored sections need to clear it when scrolled to. */
+  --header-h: 5rem;
+
+  /* Linework. Gold is only ever this thin — a rule, never a region. */
+  --rule-weight: 1px;
+  --rule-length: 4rem;
+}
