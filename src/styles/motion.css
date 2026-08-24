@@ -24,9 +24,9 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Anchored sections clear the fixed header when jumped to. */
+/* Anchored sections clear the fixed header and announcement bar when jumped to. */
 section[id] {
-  scroll-margin-top: calc(var(--header-h) + 1rem);
+  scroll-margin-top: calc(var(--header-h) + var(--banner-h) + 1rem);
 }
 
 /* ---------------------------------------------------------------------

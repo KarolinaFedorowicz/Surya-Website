@@ -31,7 +31,7 @@ export default function RetreatsIntro() {
     <>
       <Section
         tone="dark"
-        className="pt-[calc(var(--header-h)+var(--space-section))]"
+        className="pt-[calc(var(--header-h)+var(--banner-h)+var(--space-section))]"
       >
         <Reveal index={0}>
           <h1 className="font-display text-h1 tracking-h1 leading-h1 text-warm-ivory">
@@ -80,7 +80,7 @@ export default function RetreatsIntro() {
         <div className="mt-[var(--space-block)] grid gap-[var(--space-block)] lg:grid-cols-[minmax(0,36rem)_minmax(0,1fr)] lg:items-start lg:gap-16">
           <RetreatForm />
 
-          <div className="lg:sticky lg:top-[calc(var(--header-h)+2rem)]">
+          <div className="lg:sticky lg:top-[calc(var(--header-h)+var(--banner-h)+2rem)]">
             <RetreatCollage />
           </div>
         </div>

@@ -9,7 +9,7 @@ import {
   useState,
   useTransition,
 } from "react";
-import { startCheckout } from "@/app/shop/actions";
+import { useCart } from "@/components/cart/CartProvider";
 import Divider from "@/components/ui/Divider";
 import { buttonBase, buttonSize, buttonSkin } from "@/components/ui/buttonStyles";
 
@@ -74,6 +74,7 @@ export default function ProductPurchase({
   const [quantity, setQuantity] = useState(1);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const { addItem } = useCart();
 
   /* ---- Gallery scrollbar ----
      The native bar is hidden (see .gallery-scroll in globals.css); this is the
@@ -146,16 +147,18 @@ export default function ProductPurchase({
     setError(null);
 
     startTransition(async () => {
-      const result = await startCheckout(variant.id!, quantity);
+      const result = await addItem(variant.id!, quantity);
 
-      if ("error" in result) {
+      if (result.error) {
         setError(result.error);
         return;
       }
 
-      // Shopify's hosted checkout. Same tab: a checkout that opens in a new
-      // window loses the back button, which people rely on to change their mind.
-      window.location.href = result.checkoutUrl;
+      // No drawer here: CartProvider's addItem already queues the
+      // subscribe-upsell modal for the line just added, and opening the
+      // drawer underneath it at the same time would just be a second,
+      // un-interactable overlay stacked behind the first. The header's Cart
+      // button is there if the buyer wants to review the cart separately.
     });
   }
 
@@ -319,7 +322,7 @@ export default function ProductPurchase({
                 {!variant.available
                   ? "Sold out"
                   : pending
-                    ? "Opening checkout…"
+                    ? "Adding…"
                     : "Add to cart"}
               </button>
             ) : (

@@ -115,7 +115,7 @@ export default async function ShopProduct() {
        a landing page for a single product: the job of the first screen is to
        show the thing, its name and its price, and a full section's worth of
        padding at the top was spending 70px of that screen on nothing. */
-    <Section className="pt-[calc(var(--header-h)+var(--space-block))]">
+    <Section className="pt-[calc(var(--header-h)+var(--banner-h)+var(--space-block))]">
       {/* The eyebrow and title block that used to sit here is gone. It printed
           "Ceremonial Cacao" directly above a product detail that then printed
           the size in the same display face at the same size, so the page led

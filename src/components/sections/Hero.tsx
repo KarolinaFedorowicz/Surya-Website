@@ -74,10 +74,10 @@ export default function Hero() {
        * of that just inflates the hero past the fold: with it, the hero was a
        * fixed ~945px tall whatever the viewport, which pushed the CTAs out of
        * sight on any laptop shorter than 800px. The padding only has to clear
-       * the fixed header and keep a block of air at the bottom; centering does
-       * the rest.
+       * the fixed header and announcement bar, and keep a block of air at the
+       * bottom; centering does the rest.
        */}
-      <Container className="pt-[var(--header-h)] pb-[var(--space-block)]">
+      <Container className="pt-[calc(var(--header-h)+var(--banner-h))] pb-[var(--space-block)]">
         <Reveal index={0}>
           <h1 className="font-display text-h1 tracking-h1 leading-h1 text-warm-ivory max-w-[14ch]">
             {hero.headline}

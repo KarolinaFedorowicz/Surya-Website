@@ -37,8 +37,8 @@ function requireEnv(name: string): string {
   return value;
 }
 
-export async function sendRetreatEnquiry(enquiry: RetreatEnquiry) {
-  const transport = nodemailer.createTransport({
+function transport() {
+  return nodemailer.createTransport({
     host: requireEnv("SMTP_HOST"),
     port: Number(process.env.SMTP_PORT ?? 587),
     secure: Number(process.env.SMTP_PORT ?? 587) === 465,
@@ -47,10 +47,12 @@ export async function sendRetreatEnquiry(enquiry: RetreatEnquiry) {
       pass: requireEnv("SMTP_PASS"),
     },
   });
+}
 
+export async function sendRetreatEnquiry(enquiry: RetreatEnquiry) {
   const name = `${enquiry.firstName} ${enquiry.lastName}`.trim();
 
-  await transport.sendMail({
+  await transport().sendMail({
     from: `"Surya Cacao — Retreats" <${requireEnv("SMTP_USER")}>`,
     to: INBOX,
     replyTo: enquiry.email,
@@ -63,5 +65,20 @@ export async function sendRetreatEnquiry(enquiry: RetreatEnquiry) {
       "Why are you interested?",
       enquiry.interest,
     ].join("\n"),
+  });
+}
+
+/**
+ * The "only a couple of bags left" popup on the home page collects an email
+ * so we can notify a shopper if the product sells out before they order.
+ * Same SMTP transport as the retreat form — one delivery mechanism, not two.
+ */
+export async function sendStockNotifySignup(email: string) {
+  await transport().sendMail({
+    from: `"Surya Cacao — Website" <${requireEnv("SMTP_USER")}>`,
+    to: INBOX,
+    replyTo: email,
+    subject: `Stock notify signup — ${email}`,
+    text: `${email} signed up on the home page popup to be notified if Ceremonial Cacao sells out.`,
   });
 }

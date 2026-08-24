@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Gilda_Display, Marcellus } from "next/font/google";
 import Header from "@/components/layout/Header";
+import Banner from "@/components/layout/Banner";
 import Footer from "@/components/layout/Footer";
+import CartProvider from "@/components/cart/CartProvider";
 import "./globals.css";
 
 // Both faces are self-hosted and subset by next/font, with font-display: swap,
@@ -34,9 +36,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${gildaDisplay.variable} ${marcellus.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Header />
-        {children}
-        <Footer />
+        <CartProvider>
+          <Header />
+          <Banner />
+          {children}
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   );

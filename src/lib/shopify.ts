@@ -41,6 +41,17 @@ export type ProductVariant = {
   image: { url: string; altText: string | null } | null;
 };
 
+/**
+ * A subscription option ("Deliver every month"), configured in Shopify admin
+ * via the Subscriptions app — not something this codebase can create. When
+ * the product has none, sellingPlans is empty and the cart drawer disables
+ * the subscribe option rather than offering a plan that doesn't exist.
+ */
+export type SellingPlan = {
+  id: string;
+  name: string;
+};
+
 export type Product = {
   id: string;
   title: string;
@@ -49,6 +60,7 @@ export type Product = {
   optionName: string;
   images: { url: string; altText: string | null }[];
   variants: ProductVariant[];
+  sellingPlans: SellingPlan[];
 };
 
 type GraphQLResponse<T> = {
@@ -136,6 +148,16 @@ const PRODUCT_QUERY = /* GraphQL */ `
           }
         }
       }
+      sellingPlanGroups(first: 5) {
+        nodes {
+          sellingPlans(first: 5) {
+            nodes {
+              id
+              name
+            }
+          }
+        }
+      }
     }
   }
 `;
@@ -155,6 +177,9 @@ type ProductQueryResult = {
         price: { amount: string; currencyCode: string };
         image: { url: string; altText: string | null } | null;
       }[];
+    };
+    sellingPlanGroups: {
+      nodes: { sellingPlans: { nodes: { id: string; name: string }[] } }[];
     };
   } | null;
 };
@@ -189,15 +214,156 @@ export async function getProduct(
       currencyCode: v.price.currencyCode,
       image: v.image,
     })),
+    sellingPlans: product.sellingPlanGroups.nodes.flatMap((group) =>
+      group.sellingPlans.nodes,
+    ),
   };
+}
+
+/**
+ * Cart, kept as real Shopify cart state rather than the previous pattern of
+ * creating a fresh cart and redirecting straight to checkout on every click.
+ * The cart ID is a random unguessable string scoped to one buyer, so it is
+ * safe to hold in a plain (non-HttpOnly) cookie — see cart-actions.ts, which
+ * is the only thing that reads or writes that cookie.
+ *
+ * Deliberately not a custom checkout: payment, tax and shipping are Shopify's
+ * problem, and re-implementing them would put this site in PCI scope for no
+ * gain. Every function here ends at a Shopify-hosted checkoutUrl, never at a
+ * card field of our own.
+ */
+export type CartLine = {
+  id: string;
+  quantity: number;
+  merchandiseId: string;
+  productTitle: string;
+  variantTitle: string;
+  price: string;
+  currencyCode: string;
+  image: { url: string; altText: string | null } | null;
+  /** Null means a one-time purchase — the line has no subscription attached. */
+  sellingPlanName: string | null;
+};
+
+export type Cart = {
+  id: string;
+  checkoutUrl: string;
+  totalQuantity: number;
+  subtotal: string;
+  currencyCode: string;
+  lines: CartLine[];
+};
+
+const CART_FRAGMENT = /* GraphQL */ `
+  fragment CartFields on Cart {
+    id
+    checkoutUrl
+    totalQuantity
+    cost {
+      subtotalAmount {
+        amount
+        currencyCode
+      }
+    }
+    lines(first: 50) {
+      nodes {
+        id
+        quantity
+        sellingPlanAllocation {
+          sellingPlan {
+            name
+          }
+        }
+        merchandise {
+          ... on ProductVariant {
+            id
+            title
+            price {
+              amount
+              currencyCode
+            }
+            image {
+              url
+              altText
+            }
+            product {
+              title
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+type RawCart = {
+  id: string;
+  checkoutUrl: string;
+  totalQuantity: number;
+  cost: { subtotalAmount: { amount: string; currencyCode: string } };
+  lines: {
+    nodes: {
+      id: string;
+      quantity: number;
+      sellingPlanAllocation: { sellingPlan: { name: string } } | null;
+      merchandise: {
+        id: string;
+        title: string;
+        price: { amount: string; currencyCode: string };
+        image: { url: string; altText: string | null } | null;
+        product: { title: string };
+      };
+    }[];
+  };
+};
+
+function mapCart(raw: RawCart): Cart {
+  return {
+    id: raw.id,
+    checkoutUrl: raw.checkoutUrl,
+    totalQuantity: raw.totalQuantity,
+    subtotal: raw.cost.subtotalAmount.amount,
+    currencyCode: raw.cost.subtotalAmount.currencyCode,
+    lines: raw.lines.nodes.map((line) => ({
+      id: line.id,
+      quantity: line.quantity,
+      merchandiseId: line.merchandise.id,
+      productTitle: line.merchandise.product.title,
+      variantTitle: line.merchandise.title,
+      price: line.merchandise.price.amount,
+      currencyCode: line.merchandise.price.currencyCode,
+      image: line.merchandise.image,
+      sellingPlanName: line.sellingPlanAllocation?.sellingPlan.name ?? null,
+    })),
+  };
+}
+
+const CART_QUERY = /* GraphQL */ `
+  query Cart($id: ID!) {
+    cart(id: $id) {
+      ...CartFields
+    }
+  }
+  ${CART_FRAGMENT}
+`;
+
+/** Null return means the cart ID is stale (expired or already converted to an
+ * order) — the caller starts a fresh cart rather than erroring. */
+export async function getCart(cartId: string): Promise<Cart | null> {
+  const data = await storefront<{ cart: RawCart | null }>(
+    CART_QUERY,
+    { id: cartId },
+    "no-store",
+  );
+  const raw = data?.cart;
+  return raw ? mapCart(raw) : null;
 }
 
 const CART_CREATE = /* GraphQL */ `
   mutation CartCreate($lines: [CartLineInput!]!) {
     cartCreate(input: { lines: $lines }) {
       cart {
-        id
-        checkoutUrl
+        ...CartFields
       }
       userErrors {
         field
@@ -205,45 +371,142 @@ const CART_CREATE = /* GraphQL */ `
       }
     }
   }
+  ${CART_FRAGMENT}
 `;
 
-type CartCreateResult = {
-  cartCreate: {
-    cart: { id: string; checkoutUrl: string } | null;
+const CART_LINES_ADD = /* GraphQL */ `
+  mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
+    cartLinesAdd(cartId: $cartId, lines: $lines) {
+      cart {
+        ...CartFields
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+  ${CART_FRAGMENT}
+`;
+
+const CART_LINES_UPDATE = /* GraphQL */ `
+  mutation CartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+    cartLinesUpdate(cartId: $cartId, lines: $lines) {
+      cart {
+        ...CartFields
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+  ${CART_FRAGMENT}
+`;
+
+const CART_LINES_REMOVE = /* GraphQL */ `
+  mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
+    cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
+      cart {
+        ...CartFields
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+  ${CART_FRAGMENT}
+`;
+
+type CartMutationResult<K extends string> = {
+  [key in K]: {
+    cart: RawCart | null;
     userErrors: { field: string[] | null; message: string }[];
   };
 };
 
-/**
- * Creates a cart with one line and hands back Shopify's hosted checkout URL.
- *
- * Deliberately not a custom checkout: payment, tax and shipping are Shopify's
- * problem, and re-implementing them would put this site in PCI scope for no
- * gain.
- *
- * `no-store` because a cached cart mutation would hand two different buyers
- * the same cart.
- */
-export async function createCheckout(
-  variantId: string,
-  quantity = 1,
-): Promise<{ checkoutUrl: string } | { error: string }> {
-  const data = await storefront<CartCreateResult>(
-    CART_CREATE,
-    { lines: [{ merchandiseId: variantId, quantity }] },
-    "no-store",
-  );
-
+function unwrap<K extends string>(
+  data: CartMutationResult<K> | null,
+  key: K,
+): Cart | { error: string } {
   if (!data) return { error: "Could not reach the store." };
 
-  const { cart, userErrors } = data.cartCreate;
-
+  const { cart, userErrors } = data[key];
   if (userErrors.length) {
-    console.error("Shopify cartCreate:", userErrors);
+    console.error(`Shopify ${key}:`, userErrors);
     return { error: userErrors[0].message };
   }
+  if (!cart) return { error: "The cart could not be updated." };
 
-  if (!cart) return { error: "The cart could not be created." };
+  return mapCart(cart);
+}
 
-  return { checkoutUrl: cart.checkoutUrl };
+/** `sellingPlanId` attaches a subscription (from Product.sellingPlans) to the
+ * line; omit it for a one-time purchase. */
+export async function createCart(
+  variantId: string,
+  quantity: number,
+  sellingPlanId?: string,
+): Promise<Cart | { error: string }> {
+  const data = await storefront<CartMutationResult<"cartCreate">>(
+    CART_CREATE,
+    {
+      lines: [
+        { merchandiseId: variantId, quantity, sellingPlanId },
+      ],
+    },
+    "no-store",
+  );
+  return unwrap(data, "cartCreate");
+}
+
+export async function addCartLine(
+  cartId: string,
+  variantId: string,
+  quantity: number,
+  sellingPlanId?: string,
+): Promise<Cart | { error: string }> {
+  const data = await storefront<CartMutationResult<"cartLinesAdd">>(
+    CART_LINES_ADD,
+    {
+      cartId,
+      lines: [
+        { merchandiseId: variantId, quantity, sellingPlanId },
+      ],
+    },
+    "no-store",
+  );
+  return unwrap(data, "cartLinesAdd");
+}
+
+/**
+ * `sellingPlanId`, when passed, attaches a subscription to an existing
+ * one-time line — this is how the cart drawer's "Subscribe & save" control
+ * upgrades a line without removing and re-adding it.
+ */
+export async function updateCartLine(
+  cartId: string,
+  lineId: string,
+  quantity: number,
+  sellingPlanId?: string,
+): Promise<Cart | { error: string }> {
+  const data = await storefront<CartMutationResult<"cartLinesUpdate">>(
+    CART_LINES_UPDATE,
+    { cartId, lines: [{ id: lineId, quantity, sellingPlanId }] },
+    "no-store",
+  );
+  return unwrap(data, "cartLinesUpdate");
+}
+
+export async function removeCartLine(
+  cartId: string,
+  lineId: string,
+): Promise<Cart | { error: string }> {
+  const data = await storefront<CartMutationResult<"cartLinesRemove">>(
+    CART_LINES_REMOVE,
+    { cartId, lineIds: [lineId] },
+    "no-store",
+  );
+  return unwrap(data, "cartLinesRemove");
 }

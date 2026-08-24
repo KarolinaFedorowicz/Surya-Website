@@ -15,7 +15,7 @@ export default function ShopIntro() {
   if (!shop.headline && !shop.intro) return null;
 
   return (
-    <Section className="pt-[calc(var(--header-h)+var(--space-section))]">
+    <Section className="pt-[calc(var(--header-h)+var(--banner-h)+var(--space-section))]">
       <Reveal index={0}>
         <Eyebrow>Shop</Eyebrow>
       </Reveal>

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { navigation } from "@content/navigation";
 import Button from "@/components/ui/Button";
+import CartButton from "@/components/cart/CartButton";
 
 /**
  * The link list, plus the mobile drawer.
@@ -77,6 +78,8 @@ export default function Nav() {
           ))}
         </ul>
 
+        <CartButton />
+
         <Button href={navigation.cta.href} size="compact">
           {navigation.cta.label}
         </Button>
@@ -123,10 +126,17 @@ export default function Nav() {
           ))}
         </ul>
 
-        <div className="mt-10">
+        <div className="mt-10 flex items-center gap-6">
           <Button href={navigation.cta.href} onDark>
             {navigation.cta.label}
           </Button>
+
+          {/* CartButton opens the drawer via context; this wrapper also
+              closes the mobile menu, since both are full-screen overlays and
+              having them stack looks like a bug. */}
+          <div onClick={() => setOpen(false)}>
+            <CartButton />
+          </div>
         </div>
       </div>
     </>

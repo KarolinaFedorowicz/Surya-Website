@@ -153,6 +153,11 @@
    * anchored sections need to clear it when scrolled to. */
   --header-h: 5rem;
 
+  /* The announcement bar stacks directly below the header and is just as
+   * persistent, so anything that clears --header-h has to clear this too.
+   * See src/components/layout/Banner.tsx. */
+  --banner-h: 2.5rem;
+
   /* Linework. Gold is only ever this thin — a rule, never a region. */
   --rule-weight: 1px;
   --rule-length: 4rem;
