@@ -18,6 +18,7 @@ export const navigation: {
     { label: "About Us", href: "/#about-us" },
     { label: "Shop", href: "/shop" },
     { label: "Retreats", href: "/retreats" },
+    { label: "Contact", href: "/contact" },
     // "Join our Tribe" was removed from the nav. The section it pointed at is
     // now a small banner rather than a destination worth a nav slot, and it
     // sends people off-site to WhatsApp — which is not what a nav link should

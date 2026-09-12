@@ -25,7 +25,19 @@ export type RetreatEnquiry = {
   interest: string;
 };
 
+export type ContactMessage = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  message: string;
+};
+
 const INBOX = process.env.RETREAT_INBOX ?? "k.fedorowicz@riftartech.com";
+
+// The general contact form has its own destination, deliberately separate
+// from RETREAT_INBOX — this is the address a customer expects a reply from,
+// not the retreat-booking inbox.
+const CONTACT_INBOX = process.env.CONTACT_INBOX ?? "karolina@suryacacao.com";
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -80,5 +92,26 @@ export async function sendStockNotifySignup(email: string) {
     replyTo: email,
     subject: `Stock notify signup — ${email}`,
     text: `${email} signed up on the home page popup to be notified if Ceremonial Cacao sells out.`,
+  });
+}
+
+/**
+ * The general contact form at /contact. Delivered to CONTACT_INBOX, not
+ * RETREAT_INBOX — see the constant above.
+ */
+export async function sendContactMessage(message: ContactMessage) {
+  const name = `${message.firstName} ${message.lastName}`.trim();
+
+  await transport().sendMail({
+    from: `"Surya Cacao — Contact" <${requireEnv("SMTP_USER")}>`,
+    to: CONTACT_INBOX,
+    replyTo: message.email,
+    subject: `Contact form — ${name}`,
+    text: [
+      `Name:  ${name}`,
+      `Email: ${message.email}`,
+      "",
+      message.message,
+    ].join("\n"),
   });
 }
