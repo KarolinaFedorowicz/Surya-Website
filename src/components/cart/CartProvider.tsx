@@ -86,6 +86,12 @@ export default function CartProvider({
       if ("error" in result) return { error: result.error };
       setCart(result);
 
+      // Open the drawer so there's always a visible next step after adding —
+      // otherwise a customer who dismisses the subscribe upsell below (or
+      // never sees one) is left back on the product page with no obvious way
+      // to reach checkout beyond the header's small "Cart" link.
+      setIsOpen(true);
+
       // Only prompt on a fresh one-time add — not when the line already
       // carries a subscription, and not when addToCart itself was passed a
       // sellingPlanId (there is nothing left to upsell).
