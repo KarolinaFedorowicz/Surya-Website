@@ -10,7 +10,10 @@ import "server-only";
  * Best-effort: a failure here must not break the popup's own success state
  * (the email still goes out via lib/email.ts regardless), so this only logs.
  */
-export async function appendSignupToSheet(email: string) {
+export async function appendSignupToSheet(
+  email: string,
+  source = "Home page popup",
+) {
   const url = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
   if (!url) {
     console.warn(
@@ -25,7 +28,7 @@ export async function appendSignupToSheet(email: string) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email,
-        source: "Home page popup",
+        source,
         submittedAt: new Date().toISOString(),
       }),
     });

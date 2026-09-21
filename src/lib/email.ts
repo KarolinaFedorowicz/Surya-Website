@@ -81,17 +81,23 @@ export async function sendRetreatEnquiry(enquiry: RetreatEnquiry) {
 }
 
 /**
- * The "only a couple of bags left" popup on the home page collects an email
- * so we can notify a shopper if the product sells out before they order.
- * Same SMTP transport as the retreat form — one delivery mechanism, not two.
+ * Collects an email so we can notify a shopper when stock they want comes
+ * back. Two callers: the "only a couple of bags left" popup on the home page
+ * (no variant — the product overall is running low), and the sold-out size
+ * buttons on /shop (variant is the specific size, e.g. "300g"). Same SMTP
+ * transport as the retreat form — one delivery mechanism, not two.
  */
-export async function sendStockNotifySignup(email: string) {
+export async function sendStockNotifySignup(email: string, variant?: string) {
   await transport().sendMail({
     from: `"Surya Cacao — Website" <${requireEnv("SMTP_USER")}>`,
     to: INBOX,
     replyTo: email,
-    subject: `Stock notify signup — ${email}`,
-    text: `${email} signed up on the home page popup to be notified if Ceremonial Cacao sells out.`,
+    subject: variant
+      ? `Restock notify signup — ${variant} — ${email}`
+      : `Stock notify signup — ${email}`,
+    text: variant
+      ? `${email} asked to be notified when the ${variant} Ceremonial Cacao is back in stock.`
+      : `${email} signed up on the home page popup to be notified if Ceremonial Cacao sells out.`,
   });
 }
 

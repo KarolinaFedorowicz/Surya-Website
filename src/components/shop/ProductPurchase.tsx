@@ -12,6 +12,7 @@ import {
 import { useCart } from "@/components/cart/CartProvider";
 import Divider from "@/components/ui/Divider";
 import { buttonBase, buttonSize, buttonSkin } from "@/components/ui/buttonStyles";
+import RestockNotifyForm from "./RestockNotifyForm";
 
 /**
  * The purchase block on /shop — one product, three sizes, presented as a
@@ -225,22 +226,32 @@ export default function ProductPurchase({
               {optionName}
             </legend>
 
+            {/* Sold-out sizes are still selectable — a shopper choosing one
+                needs to land on a visible "Sold out" state and the restock
+                signup below, not on a button that looks disabled or absent.
+                Each option is its own column so the "Sold out" caption has
+                somewhere to sit without competing with the button label. */}
             <div className="flex flex-wrap gap-3">
               {variants.map((v, i) => (
-                <button
-                  key={v.label}
-                  type="button"
-                  onClick={() => setIndex(i)}
-                  disabled={!v.available}
-                  aria-pressed={i === index}
-                  className={`text-caption tracking-caption min-w-[5.5rem] border px-5 py-3 uppercase transition-colors duration-[var(--dur-hover)] ease-[var(--ease-exhale)] ${
-                    i === index
-                      ? "border-aubergine-ink bg-aubergine-ink text-sand-paper"
-                      : "border-gilded-gold text-aubergine-ink hover:bg-warm-ivory"
-                  } ${!v.available ? "cursor-not-allowed opacity-40" : ""}`}
-                >
-                  {v.label}
-                </button>
+                <div key={v.label} className="flex flex-col items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setIndex(i)}
+                    aria-pressed={i === index}
+                    className={`text-caption tracking-caption min-w-[5.5rem] border px-5 py-3 uppercase transition-colors duration-[var(--dur-hover)] ease-[var(--ease-exhale)] ${
+                      i === index
+                        ? "border-aubergine-ink bg-aubergine-ink text-sand-paper"
+                        : "border-gilded-gold text-aubergine-ink hover:bg-warm-ivory"
+                    }`}
+                  >
+                    {v.label}
+                  </button>
+                  {!v.available && (
+                    <span className="text-caption tracking-caption text-aubergine-ink/70 uppercase">
+                      Sold out
+                    </span>
+                  )}
+                </div>
               ))}
             </div>
           </fieldset>
@@ -340,6 +351,15 @@ export default function ProductPurchase({
               <p role="alert" className="text-caption text-aubergine-ink mt-4">
                 {error}
               </p>
+            )}
+
+            {purchasable && variant.id && !variant.available && (
+              <div className="mt-6">
+                <RestockNotifyForm
+                  key={variant.label}
+                  variantLabel={variant.label}
+                />
+              </div>
             )}
           </div>
         </div>
