@@ -62,6 +62,7 @@ export default function ProductPurchase({
   specs,
   images,
   purchasable,
+  shopperCountryName,
 }: {
   productName: string;
   variants: PurchaseVariant[];
@@ -70,6 +71,8 @@ export default function ProductPurchase({
   specs: { label: string; value: string }[];
   images: { src: string; alt: string }[];
   purchasable: boolean;
+  /** Prefills the restock form's "Country / city" field. */
+  shopperCountryName: string;
 }) {
   const [index, setIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -358,6 +361,7 @@ export default function ProductPurchase({
                 <RestockNotifyForm
                   key={variant.label}
                   variantLabel={variant.label}
+                  defaultLocation={shopperCountryName}
                 />
               </div>
             )}

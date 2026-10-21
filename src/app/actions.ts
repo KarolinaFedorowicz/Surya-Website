@@ -1,15 +1,16 @@
 "use server";
 
-import { sendStockNotifySignup } from "@/lib/email";
+import { sendRestockSignup, sendStockNotifySignup } from "@/lib/email";
 import { appendSignupToSheet } from "@/lib/sheets";
+import { getShopperCountry } from "@/lib/shopper-country";
 
 export type FormState = { status: "idle" | "sent" | "error" };
 
 /**
  * Server action for the "only a couple of bags left" popup's email field, and
  * for the "notify me" form under a sold-out size on /shop — the latter sends
- * a hidden "variant" field ("150g", "300g", …) alongside the email; the
- * former sends none.
+ * a hidden "variant" field ("150g", "300g", …) and a "location" field
+ * alongside the email; the former sends neither.
  *
  * Two destinations, both best-effort: the Google Sheet is the database of
  * record, the email is just a heads-up. Neither is allowed to throw and take
@@ -24,20 +25,35 @@ export async function submitStockNotifySignup(
 ): Promise<FormState> {
   const email = String(formData.get("email") ?? "").trim();
   const variant = String(formData.get("variant") ?? "").trim() || undefined;
+  // Capped: it lands in an email subject and a sheet cell, not a database.
+  const location = String(formData.get("location") ?? "").trim().slice(0, 100);
 
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
     return { status: "error" };
   }
+  if (variant && !location) return { status: "error" };
+
+  if (!variant) {
+    await appendSignupToSheet(email, "Home page popup");
+    try {
+      await sendStockNotifySignup(email);
+    } catch (error) {
+      console.error("Stock notify signup email failed to send:", error);
+    }
+    return { status: "sent" };
+  }
+
+  const detectedCountry = await getShopperCountry();
 
   await appendSignupToSheet(
     email,
-    variant ? `Shop page — restock (${variant})` : "Home page popup",
+    `Shop page — restock (${variant}) — ${location} [${detectedCountry}]`,
   );
 
   try {
-    await sendStockNotifySignup(email, variant);
+    await sendRestockSignup({ email, variant, location, detectedCountry });
   } catch (error) {
-    console.error("Stock notify signup email failed to send:", error);
+    console.error("Restock signup email failed to send:", error);
   }
 
   return { status: "sent" };

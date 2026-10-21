@@ -76,9 +76,10 @@ function flagDiscrepancies(live: PurchaseVariant[]) {
 export default async function ShopProduct() {
   // In the shopper's market, so each size's price and its "Sold out" state
   // match what a cart in that market can actually hold.
-  const live = shopifyConfigured
-    ? await getProduct(await getShopperCountry())
-    : null;
+  const country = await getShopperCountry();
+  const live = shopifyConfigured ? await getProduct(country) : null;
+  const countryName =
+    new Intl.DisplayNames(["en"], { type: "region" }).of(country) ?? country;
 
   const variants: PurchaseVariant[] = live
     ? live.variants.map((v) => ({
@@ -133,6 +134,7 @@ export default async function ShopProduct() {
         specs={specs}
         images={PHOTOGRAPHS}
         purchasable={Boolean(live)}
+        shopperCountryName={countryName}
       />
 
       {!live && (

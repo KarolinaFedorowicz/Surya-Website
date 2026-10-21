@@ -80,24 +80,55 @@ export async function sendRetreatEnquiry(enquiry: RetreatEnquiry) {
   });
 }
 
+// Restock signups from /shop — which size, from where — go to the shop's own
+// inbox, not RETREAT_INBOX. The home page popup below still uses INBOX.
+const RESTOCK_INBOX = process.env.RESTOCK_INBOX ?? "karolina@suryacacao.com";
+
+export type RestockSignup = {
+  email: string;
+  /** The size that's sold out, e.g. "500g". */
+  variant: string;
+  /** What the shopper typed in "Country / city" — prefilled, editable. */
+  location: string;
+  /** The market the site placed them in (proxy.ts), e.g. "PL". */
+  detectedCountry: string;
+};
+
 /**
- * Collects an email so we can notify a shopper when stock they want comes
- * back. Two callers: the "only a couple of bags left" popup on the home page
- * (no variant — the product overall is running low), and the sold-out size
- * buttons on /shop (variant is the specific size, e.g. "300g"). Same SMTP
- * transport as the retreat form — one delivery mechanism, not two.
+ * The "notify me" form under a sold-out size on /shop. The shopper's own
+ * location and the detected country are both included: stock is per market
+ * (only Warsaw holds the 500g), so where they are decides whether a restock
+ * can reach them, and the two disagreeing is worth seeing.
  */
-export async function sendStockNotifySignup(email: string, variant?: string) {
+export async function sendRestockSignup(signup: RestockSignup) {
+  await transport().sendMail({
+    from: `"Surya Cacao — Website" <${requireEnv("SMTP_USER")}>`,
+    to: RESTOCK_INBOX,
+    replyTo: signup.email,
+    subject: `Restock signup — ${signup.variant} — ${signup.location}`,
+    text: [
+      `Email:            ${signup.email}`,
+      `Size:             ${signup.variant}`,
+      `Country / city:   ${signup.location}`,
+      `Detected country: ${signup.detectedCountry}`,
+      "",
+      `Asked to be notified when the ${signup.variant} Ceremonial Cacao is back in stock.`,
+    ].join("\n"),
+  });
+}
+
+/**
+ * The "only a couple of bags left" popup on the home page — no size, the
+ * product overall is running low. Same SMTP transport as the retreat form —
+ * one delivery mechanism, not two.
+ */
+export async function sendStockNotifySignup(email: string) {
   await transport().sendMail({
     from: `"Surya Cacao — Website" <${requireEnv("SMTP_USER")}>`,
     to: INBOX,
     replyTo: email,
-    subject: variant
-      ? `Restock notify signup — ${variant} — ${email}`
-      : `Stock notify signup — ${email}`,
-    text: variant
-      ? `${email} asked to be notified when the ${variant} Ceremonial Cacao is back in stock.`
-      : `${email} signed up on the home page popup to be notified if Ceremonial Cacao sells out.`,
+    subject: `Stock notify signup — ${email}`,
+    text: `${email} signed up on the home page popup to be notified if Ceremonial Cacao sells out.`,
   });
 }
 

@@ -11,8 +11,12 @@ import { submitStockNotifySignup, type FormState } from "@/app/actions";
  */
 export default function RestockNotifyForm({
   variantLabel,
+  defaultLocation,
 }: {
   variantLabel: string;
+  /** The detected country's name ("Poland"), so most shoppers only confirm
+   * it — editable, since the detection is by IP and can be wrong. */
+  defaultLocation: string;
 }) {
   const [state, action, pending] = useActionState<FormState, FormData>(
     submitStockNotifySignup,
@@ -34,11 +38,25 @@ export default function RestockNotifyForm({
       <p className="text-eyebrow tracking-eyebrow mb-3 uppercase opacity-70">
         Notify me when {variantLabel} is back
       </p>
+      <div className="border-gilded-gold mb-2 border">
+        <input
+          name="location"
+          type="text"
+          required
+          maxLength={100}
+          autoComplete="country-name"
+          defaultValue={defaultLocation}
+          aria-label="Country / city"
+          placeholder="Country / city"
+          className="text-caption text-aubergine-ink placeholder-aubergine-ink/45 w-full bg-transparent px-4 py-3 focus:outline-none"
+        />
+      </div>
       <div className="border-gilded-gold flex border">
         <input
           name="email"
           type="email"
           required
+          aria-label="Your email"
           placeholder="Your email"
           className="text-caption text-aubergine-ink placeholder-aubergine-ink/45 w-full bg-transparent px-4 py-3 focus:outline-none"
         />
