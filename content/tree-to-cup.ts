@@ -7,5 +7,5 @@ export const treeToCup: {
   body: string;
 } = {
   headline: "Sourced in the Dominican Republic. Made with intention.",
-  body: "Surya cacao comes from our partners — a Dominican family in the Samaná region of the Dominican Republic, made by Polish immigrants on the island, and shared globally by Indian natives, so it can reach your cup and your home. All of our cacao is organic and carefully selected.",
+  body: "Surya cacao comes from our partners — a Dominican family in the Samaná region of the Dominican Republic, made by Polish immigrants on the island, and shared globally by Indian natives, so it can reach your cup and your home. All of our cacao is carefully selected.",
 };

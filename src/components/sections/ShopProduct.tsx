@@ -106,7 +106,6 @@ export default async function ShopProduct() {
   const specs = [
     { label: "Origin", value: "Samaná, Dominican Republic" },
     { label: "Sourcing", value: "Single partner family" },
-    { label: "Certification", value: "100% organic" },
     { label: "Shipping", value: product.shippingTimeline },
   ];
 

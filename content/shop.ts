@@ -11,5 +11,5 @@ export const shop: {
   intro: string;
 } = {
   headline: "Choose your size.",
-  intro: "One cacao, three sizes. 100% organic, sourced from our partners in the Samaná region of the Dominican Republic. However often you sit with it, it's the same cacao in every bag.",
+  intro: "One cacao, three sizes, sourced from our partners in the Samaná region of the Dominican Republic. However often you sit with it, it's the same cacao in every bag.",
 };

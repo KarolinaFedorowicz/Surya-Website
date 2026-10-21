@@ -8,7 +8,7 @@ export const product: {
   shippingTimeline: string;
 } = {
   name: "Surya Ceremonial Cacao",
-  description: "100% Organic Ceremonial Cacao",
+  description: "Pure Ceremonial Cacao",
 
   // FALLBACK ONLY. Once the Shopify keys are set, /shop renders live prices
   // from the Buy Button embed and never reads this list — see ShopProduct.tsx
