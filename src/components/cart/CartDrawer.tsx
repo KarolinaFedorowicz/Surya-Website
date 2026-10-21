@@ -20,6 +20,7 @@ import { buttonBase, buttonSize, buttonSkin } from "@/components/ui/buttonStyles
 export default function CartDrawer() {
   const {
     cart,
+    notices,
     isOpen,
     isLoading,
     sellingPlans,
@@ -88,6 +89,22 @@ export default function CartDrawer() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5">
+          {/* Lines the last action removed rather than leave at quantity 0 —
+              see prune() in app/cart/actions.ts. role="status" so a screen
+              reader hears why the item it just added isn't in the list. */}
+          {notices.length > 0 && (
+            <ul
+              role="status"
+              className="border-gilded-gold bg-warm-ivory mb-6 space-y-1 border px-4 py-3"
+            >
+              {notices.map((notice) => (
+                <li key={notice} className="text-caption">
+                  {notice}
+                </li>
+              ))}
+            </ul>
+          )}
+
           {isEmpty ? (
             <p className="text-body opacity-70">Your cart is empty.</p>
           ) : (

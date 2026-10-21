@@ -5,6 +5,7 @@ import ProductPurchase, {
   type PurchaseVariant,
 } from "@/components/shop/ProductPurchase";
 import { getProduct, shopifyConfigured } from "@/lib/shopify";
+import { getShopperCountry } from "@/lib/shopper-country";
 
 /**
  * The purchase block on /shop. Server component: the Storefront read happens
@@ -73,7 +74,11 @@ function flagDiscrepancies(live: PurchaseVariant[]) {
 }
 
 export default async function ShopProduct() {
-  const live = shopifyConfigured ? await getProduct() : null;
+  // In the shopper's market, so each size's price and its "Sold out" state
+  // match what a cart in that market can actually hold.
+  const live = shopifyConfigured
+    ? await getProduct(await getShopperCountry())
+    : null;
 
   const variants: PurchaseVariant[] = live
     ? live.variants.map((v) => ({

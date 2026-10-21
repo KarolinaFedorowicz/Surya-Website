@@ -117,8 +117,17 @@ async function storefront<T>(
   }
 }
 
+/*
+ * EVERY OPERATION BELOW CARRIES @inContext(country: $country). Price,
+ * availableForSale and the stock a cart line can draw on are all per market,
+ * and an operation without it is answered for the primary market (US) — see
+ * lib/country.ts for what that did to the 500g. Every exported function
+ * takes the shopper's country for that reason; there is no default.
+ */
+
 const PRODUCT_QUERY = /* GraphQL */ `
-  query Product($handle: String!) {
+  query Product($handle: String!, $country: CountryCode!)
+  @inContext(country: $country) {
     product(handle: $handle) {
       id
       title
@@ -187,11 +196,17 @@ type ProductQueryResult = {
 /**
  * Variant IDs, prices and stock all come from here rather than from any
  * hardcoded table, so a change in the Shopify admin shows up without a deploy.
+ * Cached per country: the country is part of the request body, so PL and US
+ * each get their own cache entry.
  */
 export async function getProduct(
+  country: string,
   handle: string = PRODUCT_HANDLE,
 ): Promise<Product | null> {
-  const data = await storefront<ProductQueryResult>(PRODUCT_QUERY, { handle });
+  const data = await storefront<ProductQueryResult>(PRODUCT_QUERY, {
+    handle,
+    country,
+  });
   const product = data?.product;
   if (!product) return null;
 
@@ -245,13 +260,25 @@ export type CartLine = {
   sellingPlanName: string | null;
 };
 
+/** A non-fatal note from a cart mutation — Shopify's CartWarning. `target`
+ * is the ID the warning is about (a cart line, or the merchandise). */
+export type CartWarning = {
+  code: string;
+  message: string;
+  target: string;
+};
+
 export type Cart = {
   id: string;
   checkoutUrl: string;
   totalQuantity: number;
   subtotal: string;
   currencyCode: string;
+  /** The buyer country the cart was priced and stocked for. */
+  countryCode: string | null;
   lines: CartLine[];
+  /** From the mutation that produced this cart; always empty on a read. */
+  warnings: CartWarning[];
 };
 
 const CART_FRAGMENT = /* GraphQL */ `
@@ -259,6 +286,9 @@ const CART_FRAGMENT = /* GraphQL */ `
     id
     checkoutUrl
     totalQuantity
+    buyerIdentity {
+      countryCode
+    }
     cost {
       subtotalAmount {
         amount
@@ -300,6 +330,7 @@ type RawCart = {
   id: string;
   checkoutUrl: string;
   totalQuantity: number;
+  buyerIdentity: { countryCode: string | null } | null;
   cost: { subtotalAmount: { amount: string; currencyCode: string } };
   lines: {
     nodes: {
@@ -317,13 +348,14 @@ type RawCart = {
   };
 };
 
-function mapCart(raw: RawCart): Cart {
+function mapCart(raw: RawCart, warnings: CartWarning[] = []): Cart {
   return {
     id: raw.id,
     checkoutUrl: raw.checkoutUrl,
     totalQuantity: raw.totalQuantity,
     subtotal: raw.cost.subtotalAmount.amount,
     currencyCode: raw.cost.subtotalAmount.currencyCode,
+    countryCode: raw.buyerIdentity?.countryCode ?? null,
     lines: raw.lines.nodes.map((line) => ({
       id: line.id,
       quantity: line.quantity,
@@ -335,11 +367,12 @@ function mapCart(raw: RawCart): Cart {
       image: line.merchandise.image,
       sellingPlanName: line.sellingPlanAllocation?.sellingPlan.name ?? null,
     })),
+    warnings,
   };
 }
 
 const CART_QUERY = /* GraphQL */ `
-  query Cart($id: ID!) {
+  query Cart($id: ID!, $country: CountryCode!) @inContext(country: $country) {
     cart(id: $id) {
       ...CartFields
     }
@@ -349,71 +382,96 @@ const CART_QUERY = /* GraphQL */ `
 
 /** Null return means the cart ID is stale (expired or already converted to an
  * order) — the caller starts a fresh cart rather than erroring. */
-export async function getCart(cartId: string): Promise<Cart | null> {
+export async function getCart(
+  cartId: string,
+  country: string,
+): Promise<Cart | null> {
   const data = await storefront<{ cart: RawCart | null }>(
     CART_QUERY,
-    { id: cartId },
+    { id: cartId, country },
     "no-store",
   );
   const raw = data?.cart;
   return raw ? mapCart(raw) : null;
 }
 
+/** userErrors and warnings, shared by every cart mutation below. */
+const MUTATION_RESULT = /* GraphQL */ `
+  cart {
+    ...CartFields
+  }
+  userErrors {
+    field
+    message
+  }
+  warnings {
+    code
+    message
+    target
+  }
+`;
+
 const CART_CREATE = /* GraphQL */ `
-  mutation CartCreate($lines: [CartLineInput!]!) {
-    cartCreate(input: { lines: $lines }) {
-      cart {
-        ...CartFields
-      }
-      userErrors {
-        field
-        message
-      }
+  mutation CartCreate(
+    $lines: [CartLineInput!]!
+    $country: CountryCode!
+  ) @inContext(country: $country) {
+    cartCreate(
+      input: { lines: $lines, buyerIdentity: { countryCode: $country } }
+    ) {
+      ${MUTATION_RESULT}
+    }
+  }
+  ${CART_FRAGMENT}
+`;
+
+const CART_BUYER_IDENTITY_UPDATE = /* GraphQL */ `
+  mutation CartBuyerIdentityUpdate($cartId: ID!, $country: CountryCode!)
+  @inContext(country: $country) {
+    cartBuyerIdentityUpdate(
+      cartId: $cartId
+      buyerIdentity: { countryCode: $country }
+    ) {
+      ${MUTATION_RESULT}
     }
   }
   ${CART_FRAGMENT}
 `;
 
 const CART_LINES_ADD = /* GraphQL */ `
-  mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
+  mutation CartLinesAdd(
+    $cartId: ID!
+    $lines: [CartLineInput!]!
+    $country: CountryCode!
+  ) @inContext(country: $country) {
     cartLinesAdd(cartId: $cartId, lines: $lines) {
-      cart {
-        ...CartFields
-      }
-      userErrors {
-        field
-        message
-      }
+      ${MUTATION_RESULT}
     }
   }
   ${CART_FRAGMENT}
 `;
 
 const CART_LINES_UPDATE = /* GraphQL */ `
-  mutation CartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
+  mutation CartLinesUpdate(
+    $cartId: ID!
+    $lines: [CartLineUpdateInput!]!
+    $country: CountryCode!
+  ) @inContext(country: $country) {
     cartLinesUpdate(cartId: $cartId, lines: $lines) {
-      cart {
-        ...CartFields
-      }
-      userErrors {
-        field
-        message
-      }
+      ${MUTATION_RESULT}
     }
   }
   ${CART_FRAGMENT}
 `;
 
 const CART_LINES_REMOVE = /* GraphQL */ `
-  mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
+  mutation CartLinesRemove(
+    $cartId: ID!
+    $lineIds: [ID!]!
+    $country: CountryCode!
+  ) @inContext(country: $country) {
     cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
-      cart {
-        ...CartFields
-      }
-      userErrors {
-        field
-        message
-      }
+      ${MUTATION_RESULT}
     }
   }
   ${CART_FRAGMENT}
@@ -423,6 +481,7 @@ type CartMutationResult<K extends string> = {
   [key in K]: {
     cart: RawCart | null;
     userErrors: { field: string[] | null; message: string }[];
+    warnings: CartWarning[];
   };
 };
 
@@ -432,14 +491,15 @@ function unwrap<K extends string>(
 ): Cart | { error: string } {
   if (!data) return { error: "Could not reach the store." };
 
-  const { cart, userErrors } = data[key];
+  const { cart, userErrors, warnings } = data[key];
   if (userErrors.length) {
     console.error(`Shopify ${key}:`, userErrors);
     return { error: userErrors[0].message };
   }
   if (!cart) return { error: "The cart could not be updated." };
+  if (warnings.length) console.warn(`Shopify ${key} warnings:`, warnings);
 
-  return mapCart(cart);
+  return mapCart(cart, warnings);
 }
 
 /** `sellingPlanId` attaches a subscription (from Product.sellingPlans) to the
@@ -447,6 +507,7 @@ function unwrap<K extends string>(
 export async function createCart(
   variantId: string,
   quantity: number,
+  country: string,
   sellingPlanId?: string,
 ): Promise<Cart | { error: string }> {
   const data = await storefront<CartMutationResult<"cartCreate">>(
@@ -455,16 +516,32 @@ export async function createCart(
       lines: [
         { merchandiseId: variantId, quantity, sellingPlanId },
       ],
+      country,
     },
     "no-store",
   );
   return unwrap(data, "cartCreate");
 }
 
+/** Moves an existing cart into another market — needed when a shopper's
+ * country changes (the ?country= link) after the cart was made. */
+export async function updateCartCountry(
+  cartId: string,
+  country: string,
+): Promise<Cart | { error: string }> {
+  const data = await storefront<CartMutationResult<"cartBuyerIdentityUpdate">>(
+    CART_BUYER_IDENTITY_UPDATE,
+    { cartId, country },
+    "no-store",
+  );
+  return unwrap(data, "cartBuyerIdentityUpdate");
+}
+
 export async function addCartLine(
   cartId: string,
   variantId: string,
   quantity: number,
+  country: string,
   sellingPlanId?: string,
 ): Promise<Cart | { error: string }> {
   const data = await storefront<CartMutationResult<"cartLinesAdd">>(
@@ -474,6 +551,7 @@ export async function addCartLine(
       lines: [
         { merchandiseId: variantId, quantity, sellingPlanId },
       ],
+      country,
     },
     "no-store",
   );
@@ -489,23 +567,25 @@ export async function updateCartLine(
   cartId: string,
   lineId: string,
   quantity: number,
+  country: string,
   sellingPlanId?: string,
 ): Promise<Cart | { error: string }> {
   const data = await storefront<CartMutationResult<"cartLinesUpdate">>(
     CART_LINES_UPDATE,
-    { cartId, lines: [{ id: lineId, quantity, sellingPlanId }] },
+    { cartId, lines: [{ id: lineId, quantity, sellingPlanId }], country },
     "no-store",
   );
   return unwrap(data, "cartLinesUpdate");
 }
 
-export async function removeCartLine(
+export async function removeCartLines(
   cartId: string,
-  lineId: string,
+  lineIds: string[],
+  country: string,
 ): Promise<Cart | { error: string }> {
   const data = await storefront<CartMutationResult<"cartLinesRemove">>(
     CART_LINES_REMOVE,
-    { cartId, lineIds: [lineId] },
+    { cartId, lineIds, country },
     "no-store",
   );
   return unwrap(data, "cartLinesRemove");

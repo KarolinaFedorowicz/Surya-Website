@@ -8,6 +8,7 @@ import {
   getCurrentCart,
   removeFromCart,
   subscribeCartLine,
+  type CartView,
 } from "@/app/cart/actions";
 import type { Cart, SellingPlan } from "@/lib/shopify";
 import CartDrawer from "./CartDrawer";
@@ -30,6 +31,10 @@ export type UpsellPrompt = { lineId: string; quantity: number };
 
 type CartContextValue = {
   cart: Cart | null;
+  /** Lines the last cart action removed because they couldn't be bought —
+   * "Not available in your region" / "Out of stock". Shown in the drawer;
+   * replaced on the next action. */
+  notices: string[];
   itemCount: number;
   isOpen: boolean;
   isLoading: boolean;
@@ -72,11 +77,18 @@ export default function CartProvider({
   const [isLoading, setIsLoading] = useState(false);
   const [sellingPlans, setSellingPlans] = useState<SellingPlan[]>([]);
   const [upsell, setUpsell] = useState<UpsellPrompt | null>(null);
+  const [notices, setNotices] = useState<string[]>([]);
+
+  const apply = useCallback((result: CartView | { error: string } | null) => {
+    if (result && "error" in result) return;
+    setCart(result);
+    setNotices(result?.notices ?? []);
+  }, []);
 
   useEffect(() => {
-    getCurrentCart().then(setCart);
+    getCurrentCart().then(apply);
     getAvailableSellingPlans().then(setSellingPlans);
-  }, []);
+  }, [apply]);
 
   const addItem = useCallback(
     async (variantId: string, quantity: number, sellingPlanId?: string) => {
@@ -84,7 +96,7 @@ export default function CartProvider({
       const result = await addToCart(variantId, quantity, sellingPlanId);
       setIsLoading(false);
       if ("error" in result) return { error: result.error };
-      setCart(result);
+      apply(result);
 
       // Open the drawer so there's always a visible next step after adding —
       // otherwise a customer who dismisses the subscribe upsell below (or
@@ -104,37 +116,44 @@ export default function CartProvider({
 
       return {};
     },
-    [],
+    [apply],
   );
 
-  const updateQuantity = useCallback(async (lineId: string, quantity: number) => {
-    setIsLoading(true);
-    const result = await changeCartLineQuantity(lineId, quantity);
-    setIsLoading(false);
-    if (!("error" in result)) setCart(result);
-  }, []);
+  const updateQuantity = useCallback(
+    async (lineId: string, quantity: number) => {
+      setIsLoading(true);
+      const result = await changeCartLineQuantity(lineId, quantity);
+      setIsLoading(false);
+      apply(result);
+    },
+    [apply],
+  );
 
-  const removeItem = useCallback(async (lineId: string) => {
-    setIsLoading(true);
-    const result = await removeFromCart(lineId);
-    setIsLoading(false);
-    if (!("error" in result)) setCart(result);
-  }, []);
+  const removeItem = useCallback(
+    async (lineId: string) => {
+      setIsLoading(true);
+      const result = await removeFromCart(lineId);
+      setIsLoading(false);
+      apply(result);
+    },
+    [apply],
+  );
 
   const subscribeLine = useCallback(
     async (lineId: string, quantity: number, sellingPlanId: string) => {
       setIsLoading(true);
       const result = await subscribeCartLine(lineId, quantity, sellingPlanId);
       setIsLoading(false);
-      if (!("error" in result)) setCart(result);
+      apply(result);
     },
-    [],
+    [apply],
   );
 
   return (
     <CartContext.Provider
       value={{
         cart,
+        notices,
         itemCount: cart?.totalQuantity ?? 0,
         isOpen,
         isLoading,
