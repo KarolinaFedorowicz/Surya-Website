@@ -118,6 +118,28 @@ export async function sendRestockSignup(signup: RestockSignup) {
 }
 
 /**
+ * The private /restock-waitlist page — no size, just the person and where
+ * they are. Delivered to RESTOCK_INBOX alongside the per-size /shop signups.
+ */
+export async function sendRestockWaitlistSignup(
+  signup: Omit<RestockSignup, "variant">,
+) {
+  await transport().sendMail({
+    from: `"Surya Cacao — Website" <${requireEnv("SMTP_USER")}>`,
+    to: RESTOCK_INBOX,
+    replyTo: signup.email,
+    subject: `Restock waitlist — ${signup.location}`,
+    text: [
+      `Email:            ${signup.email}`,
+      `Country / region: ${signup.location}`,
+      `Detected country: ${signup.detectedCountry}`,
+      "",
+      "Joined the restock waitlist and asked to be emailed when Ceremonial Cacao is back.",
+    ].join("\n"),
+  });
+}
+
+/**
  * The "only a couple of bags left" popup on the home page — no size, the
  * product overall is running low. Same SMTP transport as the retreat form —
  * one delivery mechanism, not two.

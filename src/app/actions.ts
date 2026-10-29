@@ -1,6 +1,10 @@
 "use server";
 
-import { sendRestockSignup, sendStockNotifySignup } from "@/lib/email";
+import {
+  sendRestockSignup,
+  sendRestockWaitlistSignup,
+  sendStockNotifySignup,
+} from "@/lib/email";
 import { appendSignupToSheet } from "@/lib/sheets";
 import { getShopperCountry } from "@/lib/shopper-country";
 
@@ -54,6 +58,38 @@ export async function submitStockNotifySignup(
     await sendRestockSignup({ email, variant, location, detectedCountry });
   } catch (error) {
     console.error("Restock signup email failed to send:", error);
+  }
+
+  return { status: "sent" };
+}
+
+/**
+ * Server action for the private /restock-waitlist page: email plus the
+ * country / region the person typed. Same best-effort delivery as above —
+ * sheet first, then a heads-up email to RESTOCK_INBOX.
+ */
+export async function submitRestockWaitlist(
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const email = String(formData.get("email") ?? "").trim();
+  const location = String(formData.get("location") ?? "").trim().slice(0, 100);
+
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || !location) {
+    return { status: "error" };
+  }
+
+  const detectedCountry = await getShopperCountry();
+
+  await appendSignupToSheet(
+    email,
+    `Restock waitlist — ${location} [${detectedCountry}]`,
+  );
+
+  try {
+    await sendRestockWaitlistSignup({ email, location, detectedCountry });
+  } catch (error) {
+    console.error("Restock waitlist email failed to send:", error);
   }
 
   return { status: "sent" };
