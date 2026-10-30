@@ -110,7 +110,7 @@ export default async function ShopProduct() {
   const description = product.description;
 
   const specs = [
-    { label: "Origin", value: "Samaná, Dominican Republic" },
+    { label: "Origin", value: "Pimentel, Dominican Republic" },
     { label: "Sourcing", value: "Single partner family" },
     { label: "Shipping", value: product.shippingTimeline },
   ];

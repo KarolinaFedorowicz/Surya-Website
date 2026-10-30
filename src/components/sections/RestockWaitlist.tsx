@@ -32,7 +32,7 @@ export default async function RestockWaitlist() {
 
       <Reveal index={2}>
         <p className="text-body leading-body max-w-[var(--measure)]">
-          Our ceremonial cacao comes from a single partner family in Samaná,
+          Our ceremonial cacao comes from a single partner family in Pimentel,
           one small harvest at a time. Leave your email and where you are, and
           we&rsquo;ll write to you the moment the next batch can ship to you.
         </p>

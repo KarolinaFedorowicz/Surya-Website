@@ -58,7 +58,7 @@ Photography carries the warmth in this direction, since the palette itself stays
 |---|---|---|
 | **1. Hero** | One image, contained right, tall portrait crop. Type left. | Vero's asymmetry. A full-bleed hero would bury the Sand Paper ground before it's established. `surya_pack_white_portrait.png` (1600×2000) is the right shape. |
 | **2. Beyond Cacao** *(dark)* | **None.** | The one text-only moment. It's a manifesto section — an image dilutes it, and the dark ground is already the visual event. |
-| **3. From Tree to Cup** | Full-bleed, 2–3 image sequence. | The documentary moment: Samaná, pods, drying beds, hands. Full-bleed here is the payoff for holding back in the hero. **This is your biggest gap — you have no origin photography.** |
+| **3. From Tree to Cup** | Full-bleed, 2–3 image sequence. | The documentary moment: Pimentel, pods, drying beds, hands. Full-bleed here is the payoff for holding back in the hero. **This is your biggest gap — you have no origin photography.** |
 | **4. The Ritual, Step by Step** | Three images, one per step, equal contained columns. | Whisking, the pause, the first sip. Photography rather than icons — icons would read as a supplement brand, which is the exact thing the copy denies. |
 | **5. Founder / Three Families** | Three portraits, contained, in a row. | The three-continents story is the credibility claim. Faces prove it; a stock cacao pod doesn't. Second-biggest gap. |
 | **6. Product & Purchase** | Packshot on a Warm Ivory panel, contained. | `surya_pack_clean_transparent.png` on Ivory with the gold hairline. Transparent PNG is why this works — the panel becomes the product's ground. |
@@ -70,6 +70,6 @@ Photography carries the warmth in this direction, since the palette itself stays
 
 **Have:** packshots (`surya_pack_clean_transparent.png`, `Surya_ceremonial_cacao_300g.png`, `surya_pouch_white.png`), lifestyle (`Surya Cacao cups.jpg`, `Surya_bags.jpg`, `surya cacao bag.png`). Enough for sections 1 and 6.
 
-**Need:** origin photography from Samaná (section 3) and three family portraits (section 5). These are the two sections making the claims that distinguish Surya from any other cacao brand, and they're the two with no imagery. If neither can be shot, section 3 works as type-only over a dark ground and section 5 becomes a pull quote — but the story lands materially weaker, and it's worth knowing that before building rather than after.
+**Need:** origin photography from Pimentel (section 3) and three family portraits (section 5). These are the two sections making the claims that distinguish Surya from any other cacao brand, and they're the two with no imagery. If neither can be shot, section 3 works as type-only over a dark ground and section 5 becomes a pull quote — but the story lands materially weaker, and it's worth knowing that before building rather than after.
 
 **Format:** everything goes in `public/assets/photos/`. Serve AVIF/WebP through `next/image`, and give every image an explicit width and height so the Sand Paper ground doesn't flash and reflow while photography loads.

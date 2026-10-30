@@ -61,7 +61,7 @@ Nothing below was filled in with a stand-in. This list is the stage working corr
 | Section | Needs | Status |
 |---|---|---|
 | 1. Hero | One contained portrait-crop image beside the type | **No photo.** Renders type-only, single column. |
-| 3. From Tree to Cup | Full-bleed 2–3 image sequence from Samaná | **No origin photography.** Type-only. No stock cacao imagery substituted. |
+| 3. From Tree to Cup | Full-bleed 2–3 image sequence from Pimentel | **No origin photography.** Type-only. No stock cacao imagery substituted. |
 | 4. Ritual Steps | Three images, one per step | **None.** Renders as numbered type — deliberately not icons, which would read as a supplement brand. |
 | 5. Three Families | Three portraits | **None.** |
 | 6. Product | Transparent packshot on the Ivory panel | **Not yet in `public/assets/photos/`.** The file exists on your Desktop but hasn't been moved in or rights-confirmed. |

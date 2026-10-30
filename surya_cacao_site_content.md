@@ -50,7 +50,7 @@ Body: Every generation chooses its own drinking ritual. Rituals are the essence 
 
 Headline: Sourced in the Dominican Republic. Made with intention.
 
-Body: Surya cacao comes from our partners — a Dominican family in the Samaná region of the Dominican Republic, made by Polish immigrants on the island, and shared globally by Indian natives, so it can reach your cup and your home. All of our cacao is organic and carefully selected.
+Body: Surya cacao comes from our partners — a Dominican family in the Pimentel region of the Dominican Republic, made by Polish immigrants on the island, and shared globally by Indian natives, so it can reach your cup and your home. All of our cacao is organic and carefully selected.
 
 [PLACEHOLDER: Still missing — fermentation process, stone-ground vs. other method, single-origin status, batch size. "Organic and carefully selected" is now confirmed and in the copy. If you don't have the deeper production detail on hand, this section can ship without it — but it's the kind of specific, sensory detail that makes a sourcing story land instead of reading generic. Add it whenever you have it.]
 
@@ -70,7 +70,7 @@ Step 3 — Drink: Sit with it.
 5. FOUNDER / BRAND VOICE
 --------------------------
 
-Body: Surya Cacao is made by three families across three continents, coming together to share what we've had the privilege of enjoying for years — sourced from our partners, a Dominican family in the Samaná region of the Dominican Republic; made by Polish immigrants on the island; and shared globally by Indian natives, so it can reach your cup and your home.
+Body: Surya Cacao is made by three families across three continents, coming together to share what we've had the privilege of enjoying for years — sourced from our partners, a Dominican family in the Pimentel region of the Dominican Republic; made by Polish immigrants on the island; and shared globally by Indian natives, so it can reach your cup and your home.
 
 Three families, coming together — made by immigrants and natives, united to spread happiness. Across three continents, we combine Dominican, Polish, and Indian hands to deliver your unique cup. All of our cacao is organic and carefully selected.
 
